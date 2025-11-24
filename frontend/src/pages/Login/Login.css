@@ -1,0 +1,158 @@
+/* src/pages/Login/Login.css */
+
+/* 1. 最外层容器：占满全屏，黑色背景 */
+.login-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: #050505;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* 2. 背景层：模糊处理 */
+.background-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    filter: blur(8px) brightness(0.6);
+    transform: scale(1.02);
+    /* 防止模糊边缘漏光 */
+}
+
+.bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 3. 登录框外层：负责居中 */
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    display: flex;
+    /* 关键：弹性布局 */
+    justify-content: center;
+    /* 水平居中 */
+    align-items: center;
+    /* 垂直居中 */
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 4. 登录卡片本体 */
+.login-card {
+    width: 420px;
+    padding: 3rem;
+    background: rgba(20, 20, 20, 0.85);
+    /* 深色半透明 */
+    backdrop-filter: blur(20px);
+    /* 磨砂玻璃效果 */
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+/* 5. Tab 切换按钮 */
+.auth-tabs {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding-bottom: 0.8rem;
+    position: relative;
+    top: 1px;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    color: white;
+    border-bottom: 2px solid #FF5722;
+}
+
+/* 6. 表单元素 */
+.form-view {
+    width: 100%;
+    /* React中我们会通过条件渲染控制显示，不需要 display:none */
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 1.2rem;
+}
+
+.input-field {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.input-field:focus {
+    border-color: #FF5722;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: transform 0.2s;
+}
+
+.submit-btn:hover {
+    transform: scale(1.02);
+    background: #f0f0f0;
+}
