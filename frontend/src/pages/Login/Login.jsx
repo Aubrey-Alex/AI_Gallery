@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
+
+// --- 引入和 Welcome 页面一致的本地图片 ---
+import girlImg from '../../assets/images/welcome/girl.avif';
+import birdImg from '../../assets/images/welcome/bird.avif';
+import mountain2Img from '../../assets/images/welcome/mountain2.jpg';
+import manImg from '../../assets/images/welcome/man.jpg';
+import womanImg from '../../assets/images/welcome/woman.jpg';
+import lakeImg from '../../assets/images/welcome/lake.jpg';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    // 使用 useEffect 在页面加载时读取 state
+    useEffect(() => {
+        if (location.state?.mode === 'signup') {
+            setIsLogin(false);
+        } else {
+            setIsLogin(true);
+        }
+    }, [location.state]);
+
+    // (登录逻辑保持不变)
     const handleLogin = async () => {
         if (!username || !password) {
             message.warning('请输入用户名和密码');
@@ -32,15 +51,20 @@ const Login = () => {
 
     return (
         <div className="login-container">
-            {/* 1. 背景层 (模糊处理) */}
+            {/* 1. 背景层 (内容与 Welcome 保持一致，但会被 CSS 模糊) */}
             <div className="background-container">
                 <div className="glow-effect"></div>
+                {/* 标题内容也保持一致，但会被 CSS 变暗 */}
                 <h1 className="hero-title">AI-Powered<br />Storage *</h1>
-                <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80" className="floating-card card-main" alt="Main" />
-                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&q=60" className="floating-card card-bg-1" alt="Bg1" />
-                <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&q=60" className="floating-card card-bg-2" alt="Bg2" />
-                <img src="https://images.unsplash.com/photo-1516826957135-700dedea698c?w=400&q=50" className="floating-card card-deep-1" alt="Deep1" />
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=50" className="floating-card card-deep-2" alt="Deep2" />
+
+                {/* 图片 src 替换为本地变量 */}
+                <img src={girlImg} className="floating-card card-main" alt="Main" />
+                <img src={birdImg} className="floating-card card-bg-1" alt="Bg1" />
+                <img src={mountain2Img} className="floating-card card-bg-2" alt="Bg2" />
+                <img src={manImg} className="floating-card card-deep-1" alt="Deep1" />
+                <img src={womanImg} className="floating-card card-deep-2" alt="Deep2" />
+                {/* 补上第6张图 */}
+                <img src={lakeImg} className="floating-card card-deep-3" alt="Deep3" />
             </div>
 
             {/* 2. 登录框 (居中悬浮) */}
@@ -70,7 +94,7 @@ const Login = () => {
                                     <input
                                         type="text"
                                         className="input-field"
-                                        placeholder="Username or Email"
+                                        placeholder="Email or Username" // 参考图提示语
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                     />
@@ -85,16 +109,22 @@ const Login = () => {
                                     />
                                 </div>
                                 <button className="submit-btn" onClick={handleLogin}>Log In</button>
+                                {/* 新增：Forgot password */}
+                                <div className="forgot-password">Forgot password?</div>
                             </>
                         ) : (
                             <>
                                 <div className="form-group">
-                                    <input type="text" className="input-field" placeholder="Create Username" />
+                                    <input type="text" className="input-field" placeholder="Username" />
                                 </div>
                                 <div className="form-group">
-                                    <input type="password" className="input-field" placeholder="Create Password" />
+                                    <input type="email" className="input-field" placeholder="Email" />
+                                </div>
+                                <div className="form-group">
+                                    <input type="password" className="input-field" placeholder="Password" />
                                 </div>
                                 <button className="submit-btn">Create Account</button>
+                                <div className="terms-text">By joining, you agree to our Terms.</div>
                             </>
                         )}
                     </div>

@@ -18,8 +18,21 @@ const Welcome = () => {
             <nav>
                 <div className="logo">AI Gallery.</div>
                 <div className="nav-actions">
-                    <span className="btn-login pointer" onClick={() => navigate('/login')}>Log in</span>
-                    <span className="btn-signup pointer" onClick={() => navigate('/login')}>Sign up</span>
+                    {/* 【修改点1】点击 Log in，传参 mode: 'login' */}
+                    <span
+                        className="btn-login pointer"
+                        onClick={() => navigate('/login', { state: { mode: 'login' } })}
+                    >
+                        Log in
+                    </span>
+
+                    {/* 【修改点2】点击 Sign up，传参 mode: 'signup' */}
+                    <span
+                        className="btn-signup pointer"
+                        onClick={() => navigate('/login', { state: { mode: 'signup' } })}
+                    >
+                        Sign up
+                    </span>
                 </div>
             </nav>
 
