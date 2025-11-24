@@ -1,19 +1,25 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Welcome.css'; // 我们把样式单独放
+import './Welcome.css';
+import manImg from '../../assets/images/welcome/man.jpg';
+import girlImg from '../../assets/images/welcome/girl.avif';
+import mountain2Img from '../../assets/images/welcome/mountain2.jpg';
+import birdImg from '../../assets/images/welcome/bird.avif';
+import womanImg from '../../assets/images/welcome/woman.jpg';
+import lakeImg from '../../assets/images/welcome/lake.jpg';
 
 const Welcome = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="welcome-container">
+        <div className="welcome-page">
             <div className="glow-effect"></div>
 
             <nav>
                 <div className="logo">AI Gallery.</div>
                 <div className="nav-actions">
-                    <button className="btn-link" onClick={() => navigate('/login')}>Log in</button>
-                    <button className="btn-primary" onClick={() => navigate('/login')}>Sign up</button>
+                    <span className="btn-login pointer" onClick={() => navigate('/login')}>Log in</span>
+                    <span className="btn-signup pointer" onClick={() => navigate('/login')}>Sign up</span>
                 </div>
             </nav>
 
@@ -21,19 +27,58 @@ const Welcome = () => {
                 <div className="text-container">
                     <h1 className="hero-title">
                         AI-Powered<br />
-                        <span className="text-line-2">Storage <span className="asterisk">*</span></span>
+                        <span className="text-line-2">
+                            Storage <span className="asterisk"></span>
+                        </span>
                     </h1>
                     <p className="subtitle">
                         Login to manage your photos with AI auto-classification, semantic search, and secure cloud storage.
                     </p>
                 </div>
 
-                {/* 注意：图片路径之后可能要调整，先用网络图代替占位 */}
-                <img src="https://images.unsplash.com/photo-1616016625807-6f8d095d3e02?w=600&q=80" className="floating-card card-main" alt="Main" />
-                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&q=60" className="floating-card card-bg-1" alt="Scenery" />
-                <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&q=60" className="floating-card card-bg-2" alt="Mountain" />
-                <img src="https://images.unsplash.com/photo-1698295982631-419b6e87f16f?w=400&q=50" className="floating-card card-deep-1" alt="Abstract" />
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=50" className="floating-card card-deep-2" alt="Portrait" />
+                {/* 图片组 - 严格对应 CSS 中的6张图 */}
+
+                {/* 1. 主图 */}
+                <img
+                    src={girlImg}
+                    className="floating-card card-main"
+                    alt="Main Portrait"
+                />
+
+                {/* 2. 右上 */}
+                <img
+                    src={birdImg}
+                    className="floating-card card-bg-1"
+                    alt="Scenery Top"
+                />
+
+                {/* 3. 左下 */}
+                <img
+                    src={mountain2Img}
+                    className="floating-card card-bg-2"
+                    alt="Scenery Bottom"
+                />
+
+                {/* 4. 顶部 */}
+                <img
+                    src={manImg}
+                    className="floating-card card-deep-1"
+                    alt="Decoration 1"
+                />
+
+                {/* 5. 右侧人像 */}
+                <img
+                    src={womanImg}
+                    className="floating-card card-deep-2"
+                    alt="Decoration 2"
+                />
+
+                {/* 6. 底部风景 */}
+                <img
+                    src={lakeImg}
+                    className="floating-card card-deep-3"
+                    alt="Decoration 3"
+                />
             </section>
         </div>
     );

@@ -1,159 +1,140 @@
-/* 这里直接粘贴你 index.html 里的 CSS，不用改太多 */
-/* 稍微改一下 nav 按钮的样式，适配 button */
-.btn-link {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-right: 20px;
-}
+/* src/pages/Welcome/Welcome.css */
 
-.btn-primary {
-    background: white;
-    color: black;
-    padding: 0.7rem 1.8rem;
-    border-radius: 50px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.btn-primary:hover {
-    transform: scale(1.05);
-}
-
-/* 其他保持你 index.html 原样即可 */
-.welcome-container {
-    background-color: #050505;
-    color: white;
+/* --- 1. 霸道重置 & 容器限定 --- */
+.welcome-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
     height: 100vh;
+    background-color: #050505;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: white;
     overflow: hidden;
-    position: relative;
-    font-family: 'Inter', sans-serif;
-}
-
-/* ... (把剩下的 CSS 粘贴到这里) ... */
-/* 1. 基础重置与背景 */
-* {
     margin: 0;
     padding: 0;
+    z-index: 999;
+}
+
+.welcome-page * {
     box-sizing: border-box;
 }
 
-body {
-    background-color: #050505;
-    /* 深邃黑色背景 */
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: white;
-    overflow: hidden;
-    /* 隐藏滚动条 */
-    height: 100vh;
-    position: relative;
-}
-
-/* 2. 顶部氛围光晕 */
-.glow-effect {
+/* --- 2. 顶部氛围光晕 --- */
+.welcome-page .glow-effect {
     position: absolute;
     width: 200vw;
     height: 200vh;
-    /* 光晕颜色稍微调暗一点点，避免抢戏 */
-    background: radial-gradient(circle at top center, rgba(255, 80, 30, 0.2) 0%, rgba(0, 0, 0, 0) 65%);
+    background: radial-gradient(circle at top center, rgba(255, 80, 30, 0.15) 0%, rgba(0, 0, 0, 0) 60%);
     top: -100vh;
     left: -50vw;
-    filter: blur(150px);
-    z-index: 0;
+    filter: blur(120px);
+    z-index: 1;
     pointer-events: none;
 }
 
-/* 3. 导航栏 */
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2rem 4rem;
+/* --- 3. 导航栏 --- */
+.welcome-page nav {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 30;
-    /* 确保导航在最最上层 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem 4rem;
+    z-index: 100;
 }
 
-.logo {
+.welcome-page .logo {
+    font-family: 'Poppins', sans-serif;
     font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    font-weight: 900;
+    color: white;
+    /* -webkit-text-stroke: 1px white; */
 }
 
-.nav-actions {
+.welcome-page .nav-actions {
     display: flex;
     gap: 2rem;
     align-items: center;
 }
 
-.btn-login {
+.welcome-page .btn-login {
     color: #fff;
-    text-decoration: none;
+    cursor: pointer;
     font-weight: 500;
-    font-size: 1rem;
 }
 
-.btn-signup {
+.welcome-page .btn-signup {
     background: white;
     color: black;
     padding: 0.7rem 1.8rem;
     border-radius: 50px;
-    text-decoration: none;
     font-weight: 600;
-    font-size: 1rem;
+    cursor: pointer;
     transition: transform 0.2s;
 }
 
-.btn-signup:hover {
+.welcome-page .btn-signup:hover {
     transform: scale(1.05);
 }
 
-/* 4. 核心展示区容器 */
-.hero {
+/* --- 4. 核心排版 --- */
+.welcome-page .hero {
     position: relative;
-    height: 100vh;
+    height: 100%;
     width: 100%;
-    z-index: 10;
 }
 
-/* 5. 巨型排版 (严格限定在左侧区域) */
-.text-container {
+.welcome-page .text-container {
     position: absolute;
     top: 28%;
+    /* 还原 HTML: 28% */
     left: 10%;
-    /* 限制文字区域的最大宽度，确保不和右边的图片打架 */
-    max-width: 45%;
-    z-index: 25;
-    /* 文字层级要高 */
+    max-width: 650px;
+    z-index: 50;
     pointer-events: none;
-    /* 让鼠标事件穿透文字，但这不影响视觉 */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
 }
 
-.hero-title {
-    font-size: 7rem;
+.welcome-page .hero-title {
+    font-family: 'Poppins', sans-serif;
+    position: relative !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #ffffff;
+    font-size: 6.5rem;
     line-height: 1.1;
+    /* 【修改点1】字体加粗：使用900并配合负间距，视觉上更厚实 */
     font-weight: 800;
+    letter-spacing: 3px;
+    text-align: left;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    /* -webkit-text-stroke: 5px white; */
 }
 
-.text-line-2 {
-    margin-left: 140px;
+.welcome-page .text-line-2 {
     display: block;
+    margin-left: 140px;
+    /* 还原 HTML: 140px */
 }
 
-.asterisk {
-    font-size: 7rem;
+.welcome-page .asterisk {
+    font-size: 8rem;
     color: #FF5722;
     vertical-align: middle;
-    margin-left: 0.5rem;
+    margin-left: 1rem;
     display: inline-block;
     animation: rotate 15s linear infinite;
+    position: relative;
+    top: -5px;
+    -webkit-text-stroke: 1px #FF5722;
 }
 
 @keyframes rotate {
@@ -162,110 +143,116 @@ nav {
     }
 }
 
-.subtitle {
-    margin-top: 2rem;
-    margin-left: 140px;
-    max-width: 380px;
-    color: #999;
+.welcome-page .subtitle {
+    position: relative !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    margin-left: 140px !important;
+    /* 还原 HTML: 140px */
+    max-width: 420px;
+    color: rgba(255, 255, 255, 0.55);
     line-height: 1.6;
     font-size: 1.1rem;
     font-weight: 400;
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+    text-align: left;
 }
 
-/* 6. 悬浮倾斜图片卡片 (通用样式) */
-.floating-card {
+/* --- 5. 图片卡片 --- */
+.welcome-page .floating-card {
     position: absolute;
     border-radius: 12px;
     object-fit: cover;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    /* 默认让所有背景图片稍微暗一点，突出层次感 */
-    filter: brightness(0.7) contrast(1.1);
+    filter: brightness(0.9) contrast(1.1);
+    z-index: 10;
 }
 
-.floating-card:hover {
+.welcome-page .floating-card:hover {
     transform: scale(1.05) rotate(0deg) !important;
-    z-index: 28 !important;
-    /* 悬停时层级最高，超过文字 */
-    box-shadow: 0 35px 70px -12px rgba(0, 0, 0, 0.95);
+    z-index: 60 !important;
     filter: brightness(1) contrast(1) !important;
-    /* 悬停时变亮 */
 }
 
-/* --- 图片位置精确堆叠 (7张图布局) --- */
+/* 【修改点2】位置参数严格还原 HTML */
 
-/* [核心C位] 人像图 - 最亮、最大、最靠前 */
-.card-main {
+/* C位主图 */
+.welcome-page .card-main {
     width: 320px;
     height: 420px;
     right: 20%;
+    /* 修正: 20% */
     top: 35%;
+    /* 修正: 35% */
     transform: rotate(-3deg);
     z-index: 20;
     filter: brightness(1) !important;
-    box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.9);
 }
 
-/* [背景堆叠层] */
-.card-bg-1 {
-    /* 右上风景 */
+/* 右上风景 */
+.welcome-page .card-bg-1 {
     width: 260px;
     height: 340px;
     right: 8%;
+    /* 修正: 8% */
     top: 12%;
+    /* 修正: 12% */
     transform: rotate(8deg);
     z-index: 5;
 }
 
-.card-bg-2 {
-    /* 左下 - 已替换为新风景照 */
+/* 左下 */
+.welcome-page .card-bg-2 {
     width: 240px;
     height: 320px;
     right: 38%;
+    /* 修正: 38% */
     bottom: 5%;
+    /* 修正: bottom 5% */
+    top: auto;
+    /* 清除 top */
     transform: rotate(-10deg);
     z-index: 6;
 }
 
-/* [深层背景层] - 更小、更暗 */
-.card-deep-1 {
-    /* 最顶部边缘的小图 */
+/* 顶部深层 */
+.welcome-page .card-deep-1 {
     width: 180px;
     height: 220px;
     right: 30%;
+    /* 修正: 30% */
     top: -5%;
+    /* 修正: -5% */
     transform: rotate(-15deg);
-    z-index: 1;
+    z-index: 2;
+    /* 修正层级 */
     opacity: 0.8;
 }
 
-.card-deep-2 {
-    /* 右侧边缘 */
+/* 右侧边缘 */
+.welcome-page .card-deep-2 {
     width: 200px;
     height: 260px;
     right: -5%;
+    /* 修正: -5% */
     top: 50%;
+    /* 修正: 50% */
     transform: rotate(12deg);
-    z-index: 2;
+    z-index: 3;
+    /* 修正层级 */
+    opacity: 0.7;
 }
 
-.card-deep-3 {
-    /* 底部边缘 */
+/* 【修改点3】补回缺失的第6张图样式 */
+.welcome-page .card-deep-3 {
     width: 220px;
     height: 180px;
     right: 15%;
     bottom: -8%;
+    top: auto;
     transform: rotate(5deg);
     z-index: 3;
-}
-
-.card-deep-4 {
-    /* 文字下方深处 */
-    width: 160px;
-    height: 200px;
-    left: 50%;
-    top: 65%;
-    transform: rotate(20deg);
-    z-index: 4;
-    filter: brightness(0.5) contrast(1.2);
+    opacity: 0.7;
 }

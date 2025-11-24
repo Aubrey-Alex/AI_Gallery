@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import './Login.css'; // 确保这一行有，引入刚才写的CSS
+import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -32,22 +32,22 @@ const Login = () => {
 
     return (
         <div className="login-container">
-            {/* 1. 背景层 */}
-            <div className="background-blur">
-                {/* 这里用一张网络图做背景，你也可以换成本地图片 */}
-                <img
-                    src="https://images.unsplash.com/photo-1616016625807-6f8d095d3e02?w=1920&q=80"
-                    className="bg-img"
-                    alt="Background"
-                />
+            {/* 1. 背景层 (模糊处理) */}
+            <div className="background-container">
+                <div className="glow-effect"></div>
+                <h1 className="hero-title">AI-Powered<br />Storage *</h1>
+                <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80" className="floating-card card-main" alt="Main" />
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&q=60" className="floating-card card-bg-1" alt="Bg1" />
+                <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&q=60" className="floating-card card-bg-2" alt="Bg2" />
+                <img src="https://images.unsplash.com/photo-1516826957135-700dedea698c?w=400&q=50" className="floating-card card-deep-1" alt="Deep1" />
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=50" className="floating-card card-deep-2" alt="Deep2" />
             </div>
 
-            {/* 2. 居中遮罩层 */}
+            {/* 2. 登录框 (居中悬浮) */}
             <div className="login-overlay">
                 <div className="login-card">
                     <div className="modal-logo">AI Gallery.</div>
 
-                    {/* Tab 切换 */}
                     <div className="auth-tabs">
                         <button
                             className={`tab-btn ${isLogin ? 'active' : ''}`}
@@ -63,7 +63,6 @@ const Login = () => {
                         </button>
                     </div>
 
-                    {/* 表单区域 */}
                     <div className="form-view">
                         {isLogin ? (
                             <>
@@ -71,7 +70,7 @@ const Login = () => {
                                     <input
                                         type="text"
                                         className="input-field"
-                                        placeholder="Username"
+                                        placeholder="Username or Email"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                     />
@@ -90,10 +89,7 @@ const Login = () => {
                         ) : (
                             <>
                                 <div className="form-group">
-                                    <input type="text" className="input-field" placeholder="New Username" />
-                                </div>
-                                <div className="form-group">
-                                    <input type="email" className="input-field" placeholder="Email Address" />
+                                    <input type="text" className="input-field" placeholder="Create Username" />
                                 </div>
                                 <div className="form-group">
                                     <input type="password" className="input-field" placeholder="Create Password" />
