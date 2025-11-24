@@ -5,9 +5,10 @@ import com.example.backend.entity.SysUser;
 import com.example.backend.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 @Service
-public class UserService {
+public class UserService extends ServiceImpl<UserMapper, SysUser>{
 
     @Autowired
     private UserMapper userMapper;
