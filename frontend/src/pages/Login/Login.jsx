@@ -43,6 +43,8 @@ const Login = () => {
             });
             if (res.data === "登录成功") {
                 message.success('登录成功！欢迎回来');
+                // 【新增】关键一步：把用户信息存入本地存储
+                localStorage.setItem('userInfo', JSON.stringify({ username: username }));
                 setTimeout(() => navigate('/'), 1000); // 跳转到主页
             } else {
                 message.error(res.data);
