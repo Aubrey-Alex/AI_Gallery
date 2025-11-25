@@ -31,35 +31,47 @@ public class UserController {
     }
 
     // 注册接口
-    // 【修改后】带有唯一性检查的注册接口
+    // 【修改后】包含完整验证逻辑的注册接口
     @PostMapping("/register")
     public String register(@RequestBody SysUser user) {
-        // 0. 基础非空校验（防止前端传空值）
-        if (user.getUsername() == null || user.getEmail() == null) {
+        // 1. 基础非空校验
+        if (user.getUsername() == null || user.getPassword() == null || user.getEmail() == null) {
             return "注册失败：信息不完整";
         }
 
-        // 1. 检查用户名是否已存在
+        // 2. 【新增】长度验证 (要求 > 6)
+        if (user.getUsername().length() <= 6) {
+            return "注册失败：用户名长度必须大于6位";
+        }
+        if (user.getPassword().length() <= 6) {
+            return "注册失败：密码长度必须大于6位";
+        }
+
+        // 3. 【新增】Email 格式验证 (使用正则表达式)
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        if (!user.getEmail().matches(emailRegex)) {
+            return "注册失败：邮箱格式不正确";
+        }
+
+        // 4. 【原有】唯一性检查 (用户名和邮箱必须唯一)
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-        // SQL 逻辑: SELECT * FROM sys_user WHERE username = 'xxx' OR email = 'yyy'
         queryWrapper.eq("username", user.getUsername())
                 .or()
                 .eq("email", user.getEmail());
 
-        // 使用 MyBatis-Plus 的 count 方法查数量
         long count = userService.count(queryWrapper);
 
         if (count > 0) {
-            // 2. 如果查到了记录，说明占用了
-            return "注册失败：用户名或邮箱已被注册";
+            // 这里可以优化得更细致，告诉用户到底是用户名重了还是邮箱重了，但目前这样够用了
+            return "注册失败：用户名或邮箱已被占用";
         }
 
-        // 3. 设置默认角色 (双重保险)
+        // 5. 设置默认角色
         if (user.getRole() == null) {
             user.setRole("USER");
         }
 
-        // 4. 执行保存
+        // 6. 执行保存
         boolean success = userService.save(user);
 
         if (success) {

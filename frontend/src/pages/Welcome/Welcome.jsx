@@ -41,7 +41,7 @@ const Welcome = () => {
                     <h1 className="hero-title">
                         AI-Powered<br />
                         <span className="text-line-2">
-                            Storage <span className="asterisk"></span>
+                            Storage <span className="asterisk">*</span>
                         </span>
                     </h1>
                     <p className="subtitle">

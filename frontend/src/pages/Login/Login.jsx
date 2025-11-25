@@ -53,13 +53,34 @@ const Login = () => {
         }
     };
 
-    // --- 【新增】注册逻辑 ---
+    // --- 【修改】包含完整验证的注册逻辑 ---
     const handleRegister = async () => {
-        // 1. 简单校验
+        // --- 1. 前端校验开始 ---
+
+        // 1.1 非空校验
         if (!username || !password || !email) {
             message.warning('请填写完整信息');
             return;
         }
+
+        // 1.2 【新增】长度校验 (要求 > 6)
+        if (username.length <= 6) {
+            message.warning('用户名长度必须大于6位');
+            return;
+        }
+        if (password.length <= 6) {
+            message.warning('密码长度必须大于6位');
+            return;
+        }
+
+        // 1.3 【新增】邮箱格式校验 (正则)
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            message.warning('请输入有效的邮箱地址');
+            return;
+        }
+
+        // --- 校验通过，准备发送请求 ---
 
         try {
             // 2. 发送注册请求
@@ -69,16 +90,21 @@ const Login = () => {
                 email
             });
 
-            // 3. 处理结果
+            // 3. 处理后端返回的结果
             if (res.data === "注册成功" || res.data === true) {
                 message.success('注册成功！请直接登录');
-                setIsLogin(true); // 注册好了自动切回登录页
+
+                // (可选) 注册成功后是否清空表单？
+                // setUsername(''); setPassword(''); setEmail('');
+
+                setIsLogin(true); // 自动切回登录页
             } else {
-                message.error('注册失败，用户名或邮箱已被注册');
+                // 这里会显示后端返回的具体错误信息，比如 "注册失败：用户名或邮箱已被占用"
+                message.error(res.data);
             }
         } catch (error) {
             console.error(error);
-            message.error('注册连接失败');
+            message.error('注册连接失败，请检查网络');
         }
     };
 
@@ -127,7 +153,12 @@ const Login = () => {
                                     />
                                 </div>
                                 <button className="submit-btn" onClick={handleLogin}>Log In</button>
-                                <div className="forgot-password">Forgot password?</div>
+                                <div
+                                    className="forgot-password"
+                                    onClick={() => message.info('请联系管理员重置密码')}
+                                >
+                                    Forgot password?
+                                </div>
                             </>
                         ) : (
                             // --- 【修改】注册表单 (绑定了 value 和 onChange) ---
