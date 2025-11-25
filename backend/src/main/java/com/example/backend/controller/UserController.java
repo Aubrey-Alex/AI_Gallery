@@ -5,6 +5,7 @@ import com.example.backend.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Map;
 
@@ -15,6 +16,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired // 【新增】注入 PasswordEncoder
+    private PasswordEncoder passwordEncoder;
 
     // 测试接口：浏览器访问 /api/user/hello 就能看到
     @GetMapping("/hello")
@@ -66,12 +70,19 @@ public class UserController {
             return "注册失败：用户名或邮箱已被占用";
         }
 
-        // 5. 设置默认角色
+        // 5. 【核心修改 A】加密密码并覆盖存储
+        String rawPassword = user.getPassword();
+
+        // 使用 BCrypt 对密码进行哈希
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        user.setPassword(encodedPassword); // 覆盖为哈希值
+
+        // 6. 设置默认角色
         if (user.getRole() == null) {
             user.setRole("USER");
         }
 
-        // 6. 执行保存
+        // 7. 执行保存
         boolean success = userService.save(user);
 
         if (success) {
