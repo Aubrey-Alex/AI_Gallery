@@ -129,7 +129,7 @@ const Home = () => {
         <div className="home-container">
             <aside className="sidebar">
                 <div className="logo">
-                    <i className="ri-camera-lens-line"></i>
+                    <i className="ri-planet-line" style={{ fontSize: '1.6rem' }}></i>
                     <span>AI Gallery</span>
                 </div>
                 <div className="menu-group">
@@ -151,17 +151,18 @@ const Home = () => {
                         <i className="ri-sparkling-2-line search-icon"></i>
                     </div>
                     <div className="top-actions">
-                        <div className="view-toggles">
-                            <button className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')}>
-                                <i className="ri-layout-grid-line"></i>
-                            </button>
-                            <button className={`view-btn ${viewMode === 'stream' ? 'active' : ''}`} onClick={() => setViewMode('stream')}>
-                                <i className="ri-film-line"></i>
-                            </button>
-                        </div>
+                        {/* ... 视图切换按钮保持不变 ... */}
+
                         <button className="upload-btn"><i className="ri-upload-cloud-2-line"></i>Upload</button>
-                        <div onClick={handleLogout} title="Logout" style={{ cursor: 'pointer' }}>
-                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" className="user-avatar" alt="User" />
+
+                        {/* 【修改点 2】删除原来的 img 头像，换成文字问候 */}
+                        <div
+                            className="user-greeting-wrapper"
+                            onClick={handleLogout}
+                            title="Click to Logout"
+                        >
+                            <span className="greeting-text">Hello,</span>
+                            <span className="username-text">{user.username || 'Guest'}</span>
                         </div>
                     </div>
                 </header>

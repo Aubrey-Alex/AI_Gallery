@@ -178,13 +178,43 @@
     gap: 8px;
 }
 
-.user-avatar {
+/* .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     background: #333;
     object-fit: cover;
     cursor: pointer;
+} */
+
+.user-greeting-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+}
+
+.user-greeting-wrapper:hover {
+    opacity: 0.8;
+}
+
+.greeting-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    /* 浅灰色 Hello */
+    line-height: 1.2;
+}
+
+.username-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    /* 亮白色用户名 */
+    line-height: 1.2;
 }
 
 /* --- 核心视口 Viewport --- */
