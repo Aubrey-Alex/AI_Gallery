@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
     plugins: [react()],
     server: {
+        host: '0.0.0.0',
         port: 5173, // 前端运行端口，默认是5173
         proxy: {
             // 代理配置：这里的 '/api' 代表如果请求路径以 /api 开头

@@ -48,50 +48,51 @@ const Welcome = () => {
                         Login to manage your photos with AI auto-classification, semantic search, and secure cloud storage.
                     </p>
                 </div>
+                <div className="gallery-scale-wrapper">
+                    {/* 图片组 - 严格对应 CSS 中的6张图 */}
 
-                {/* 图片组 - 严格对应 CSS 中的6张图 */}
+                    {/* 1. 主图 */}
+                    <img
+                        src={girlImg}
+                        className="floating-card card-main"
+                        alt="Main Portrait"
+                    />
 
-                {/* 1. 主图 */}
-                <img
-                    src={girlImg}
-                    className="floating-card card-main"
-                    alt="Main Portrait"
-                />
+                    {/* 2. 右上 */}
+                    <img
+                        src={birdImg}
+                        className="floating-card card-bg-1"
+                        alt="Scenery Top"
+                    />
 
-                {/* 2. 右上 */}
-                <img
-                    src={birdImg}
-                    className="floating-card card-bg-1"
-                    alt="Scenery Top"
-                />
+                    {/* 3. 左下 */}
+                    <img
+                        src={mountain2Img}
+                        className="floating-card card-bg-2"
+                        alt="Scenery Bottom"
+                    />
 
-                {/* 3. 左下 */}
-                <img
-                    src={mountain2Img}
-                    className="floating-card card-bg-2"
-                    alt="Scenery Bottom"
-                />
+                    {/* 4. 顶部 */}
+                    <img
+                        src={manImg}
+                        className="floating-card card-deep-1"
+                        alt="Decoration 1"
+                    />
 
-                {/* 4. 顶部 */}
-                <img
-                    src={manImg}
-                    className="floating-card card-deep-1"
-                    alt="Decoration 1"
-                />
+                    {/* 5. 右侧人像 */}
+                    <img
+                        src={womanImg}
+                        className="floating-card card-deep-2"
+                        alt="Decoration 2"
+                    />
 
-                {/* 5. 右侧人像 */}
-                <img
-                    src={womanImg}
-                    className="floating-card card-deep-2"
-                    alt="Decoration 2"
-                />
-
-                {/* 6. 底部风景 */}
-                <img
-                    src={lakeImg}
-                    className="floating-card card-deep-3"
-                    alt="Decoration 3"
-                />
+                    {/* 6. 底部风景 */}
+                    <img
+                        src={lakeImg}
+                        className="floating-card card-deep-3"
+                        alt="Decoration 3"
+                    />
+                </div>
             </section>
         </div>
     );

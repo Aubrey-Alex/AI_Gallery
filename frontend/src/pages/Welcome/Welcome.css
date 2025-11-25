@@ -256,3 +256,198 @@
     z-index: 3;
     opacity: 0.7;
 }
+
+/* =========================================
+   移动端适配 - 方案 F：Eagle 同款等比缩放 (最终奥义版)
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* 1. 全局容器 */
+    .welcome-page {
+        position: relative;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background-color: #050505;
+    }
+
+    /* 2. 导航栏：保持紧凑 */
+    .welcome-page nav {
+        position: relative;
+        padding: 1.5rem;
+        z-index: 100;
+    }
+
+    .welcome-page .logo {
+        font-size: 1.2rem;
+    }
+
+    .welcome-page .nav-actions {
+        gap: 0.8rem;
+    }
+
+    .welcome-page .btn-signup {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* 3. 文字区域：缩小并居中 */
+    .welcome-page .hero {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .welcome-page .text-container {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        padding: 0 1rem;
+        margin-top: -10rem;
+        /* 稍微靠上 */
+
+        /* 弹性布局垂直居中 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 50;
+        text-align: center;
+    }
+
+    /* 字体整体等比缩小 */
+    .welcome-page .hero-title {
+        font-size: 12vw;
+        /* 使用 vw 单位，随屏幕宽度自动缩放！ */
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-page .text-line-2 {
+        margin-left: 0;
+    }
+
+    .welcome-page .asterisk {
+        font-size: 14vw;
+        top: 0;
+    }
+
+    .welcome-page .subtitle {
+        margin-left: 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        max-width: 85%;
+    }
+
+    /* 4. 核心：图片缩放舞台 (The Stage) */
+    .welcome-page .gallery-scale-wrapper {
+        position: relative;
+        width: 100%;
+        /* 关键：锁定纵横比，让它像一张图片一样缩放 */
+        aspect-ratio: 1 / 1;
+        margin-top: auto;
+        /* 推到底部 */
+        margin-bottom: -10%;
+        /* 稍微藏一点到底下去，增加纵深感 */
+    }
+
+    /* 所有卡片通用样式 */
+    .welcome-page .floating-card {
+        display: block !important;
+        position: absolute !important;
+        object-fit: cover;
+        border-radius: 8px;
+        /* 圆角稍微变小 */
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        transition: none;
+        /* 移动端取消动画 */
+    }
+
+    /* --- 开始摆放这6张图 (全部使用 % 定位) --- */
+
+    /* 1. C位主图 (正中) */
+    .welcome-page .card-main {
+        width: 45%;
+        height: auto;
+        aspect-ratio: 3/4;
+        left: 50%;
+        top: 40%;
+        margin-left: -22.5%;
+        /* width的一半 */
+        margin-top: -30%;
+        /* 根据aspect-ratio计算的高度的一半 */
+        transform: rotate(-3deg);
+        z-index: 20;
+        filter: brightness(1);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    /* 2. 右上风景 (Bird) */
+    .welcome-page .card-bg-1 {
+        width: 35%;
+        height: auto;
+        aspect-ratio: 3/4;
+        right: -5%;
+        /* 稍微以此为基准 */
+        top: 10%;
+        transform: rotate(8deg);
+        z-index: 15;
+        opacity: 0.9;
+    }
+
+    /* 3. 左下山景 (Mountain) */
+    .welcome-page .card-bg-2 {
+        width: 35%;
+        height: auto;
+        aspect-ratio: 3/4;
+        left: -5%;
+        bottom: 15%;
+        top: auto;
+        /* 清除干扰 */
+        transform: rotate(-10deg);
+        z-index: 15;
+        opacity: 0.9;
+    }
+
+    /* 4. 顶部深层 (Man - 左上) */
+    .welcome-page .card-deep-1 {
+        width: 25%;
+        height: auto;
+        aspect-ratio: 3/4;
+        left: 5%;
+        top: 0%;
+        transform: rotate(-15deg);
+        z-index: 10;
+        opacity: 0.6;
+    }
+
+    /* 5. 右侧人像 (Woman - 右中) */
+    .welcome-page .card-deep-2 {
+        width: 30%;
+        height: auto;
+        aspect-ratio: 3/4;
+        right: -8%;
+        top: 50%;
+        transform: rotate(12deg);
+        z-index: 10;
+        opacity: 0.6;
+    }
+
+    /* 6. 底部风景 (Lake - 正下) */
+    .welcome-page .card-deep-3 {
+        width: 40%;
+        height: auto;
+        aspect-ratio: 4/3;
+        /* 横构图 */
+        left: 30%;
+        bottom: -5%;
+        transform: rotate(5deg);
+        z-index: 5;
+        opacity: 0.4;
+        filter: blur(1px);
+    }
+}

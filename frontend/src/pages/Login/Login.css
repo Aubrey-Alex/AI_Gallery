@@ -267,3 +267,50 @@
     color: #666;
     font-size: 0.8rem;
 }
+
+/* =========================================
+   移动端适配 (追加到文件最底部)
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* 1. 登录卡片：变宽、适应屏幕 */
+    .login-container .login-card {
+        width: 90%;
+        /* 宽度占 90% */
+        padding: 2rem 1.5rem;
+        /* 内边距减小 */
+        margin-top: -10%;
+        /* 稍微往上提一点 */
+    }
+
+    .login-container .hero-title {
+        display: none;
+        /* 登录页手机端由于屏幕小，建议隐藏背景的大标题，太乱了 */
+    }
+
+    /* 2. 背景图片：同样做减法 */
+    .login-container .card-bg-1,
+    .login-container .card-bg-2,
+    .login-container .card-deep-1,
+    .login-container .card-deep-2,
+    .login-container .card-deep-3 {
+        display: none;
+    }
+
+    /* 保留主图作为氛围，或者也可以全部隐藏 */
+    .login-container .card-main {
+        width: 100%;
+        height: auto;
+        top: 10%;
+        left: 0;
+        opacity: 0.3;
+        /* 很淡的背景 */
+        transform: rotate(0deg);
+    }
+
+    /* 3. 输入框和按钮调整 */
+    .login-container .input-field {
+        font-size: 16px;
+        /* 防止 iOS 放大输入框 */
+    }
+}
