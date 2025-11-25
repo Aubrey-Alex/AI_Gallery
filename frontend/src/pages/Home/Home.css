@@ -1,0 +1,391 @@
+/* src/pages/Home/Home.css */
+
+/* --- 基础容器设置 --- */
+.home-container {
+    display: flex;
+    height: 100vh;
+    background-color: #050505;
+    font-family: 'Inter', sans-serif;
+    color: #e0e0e0;
+    overflow: hidden;
+}
+
+/* --- 侧边栏 Sidebar --- */
+.sidebar {
+    width: 260px;
+    background: #0A0A0A;
+    border-right: 1px solid #1F1F1F;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo span {
+    color: #FF5722;
+}
+
+.menu-group {
+    margin-bottom: 2rem;
+}
+
+.menu-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #666;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: #999;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background: #1A1A1A;
+    color: white;
+}
+
+.menu-item.active {
+    border-left: 3px solid #FF5722;
+}
+
+.menu-item i {
+    font-size: 1.1rem;
+}
+
+.ai-tag-badge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    background: #1F1F1F;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #666;
+}
+
+/* --- 主内容区 Main Content --- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-bar {
+    height: 80px;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(5, 5, 5, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #1F1F1F;
+    position: relative;
+    z-index: 50;
+}
+
+.search-container {
+    position: relative;
+    width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    background: #141414;
+    border: 1px solid #2A2A2A;
+    padding: 12px 40px 12px 16px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.view-toggles {
+    background: #141414;
+    border-radius: 8px;
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+    border: 1px solid #2A2A2A;
+}
+
+.view-btn {
+    border: none;
+    background: transparent;
+    color: #666;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-btn.active {
+    background: #333;
+    color: white;
+}
+
+.top-actions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.upload-btn {
+    background: #FF5722;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #333;
+    object-fit: cover;
+    cursor: pointer;
+} */
+
+.user-greeting-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+}
+
+.user-greeting-wrapper:hover {
+    opacity: 0.8;
+}
+
+.greeting-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    /* 浅灰色 Hello */
+    line-height: 1.2;
+}
+
+.username-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    /* 亮白色用户名 */
+    line-height: 1.2;
+}
+
+/* --- 核心视口 Viewport --- */
+.gallery-viewport {
+    flex: 1;
+    position: relative;
+    background: #050505;
+    overflow: hidden;
+    perspective: 2000px;
+    /* 3D 景深 */
+    display: flex;
+    align-items: center;
+}
+
+/* 容器 Transition */
+.card-container-fade {
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.5s ease;
+}
+
+/* --- 模式 A: Grid --- */
+.gallery-viewport.mode-grid {
+    display: block;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    opacity: 1;
+}
+
+/* --- 卡片通用样式 & 3D 修复 --- */
+.card-item {
+    position: relative;
+    height: 320px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #1a1a1a;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    /* 【修改点 3】开启硬件加速，修复 3D 渲染时的图片错误/撕裂 */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.8);
+    transition: filter 0.4s;
+
+    /* 【修改点 4】防止图片在缩放时出现像素锯齿或层级闪烁 */
+    backface-visibility: hidden;
+    transform: translateZ(0.1px);
+    /* 微微抬起，防止 Z-fighting */
+}
+
+/* Grid 模式的 hover */
+.grid-layout .card-item:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+    /* 修复覆盖层闪烁 */
+    transform: translateZ(0.2px);
+}
+
+.card-item:hover .card-overlay {
+    opacity: 1;
+}
+
+.card-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.ai-tag {
+    font-size: 0.8rem;
+    color: #FF5722;
+    background: rgba(255, 87, 34, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* --- 模式 B: Stream (流体动画) --- */
+
+.stream-wrapper {
+    position: absolute;
+    height: 400px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    display: block;
+    pointer-events: none;
+    transform-style: preserve-3d;
+}
+
+.stream-wrapper .card-item {
+    pointer-events: auto;
+}
+
+@keyframes infiniteScrollRight {
+    0% {
+        transform: translateY(-50%) translateX(-50%);
+    }
+
+    100% {
+        transform: translateY(-50%) translateX(0%);
+    }
+}
+
+.is-flowing {
+    animation: infiniteScrollRight 20s linear infinite;
+}
+
+.is-flowing:hover {
+    animation-play-state: paused;
+}
+
+.card-in-stream {
+    position: absolute;
+    width: 260px;
+    height: 380px;
+    top: 50%;
+    transform-origin: center center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1a1a1a;
+    transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+    pointer-events: auto;
+    will-change: transform, left;
+}
+
+/* 【修改点 5 - 关键】使用 .is-active 替代 :hover，且严禁使用 margin */
+.card-in-stream.is-active {
+    /* 严禁在这里加 margin！否则会导致布局挤压和闪烁 */
+
+    /* 悬停时的 3D 姿态：变大、回正、稍微浮起 */
+    transform: translateY(-50%) rotateY(0deg) scale(1.15) translateZ(200px) !important;
+
+    /* 提高层级，覆盖周围卡片 */
+    z-index: 99999 !important;
+
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8) !important;
+    border: 2px solid #FF5722;
+}
+
+.card-in-stream.is-active .card-img {
+    filter: brightness(1.1);
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
