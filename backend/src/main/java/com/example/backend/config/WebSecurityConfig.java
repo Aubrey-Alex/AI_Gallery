@@ -18,7 +18,8 @@ public class WebSecurityConfig {
                 "/api/user/login",
                 "/api/user/register",
                 "/api/user/hello",
-                "/api/image/**" // 暂时也忽略图片接口
+//                "/api/image/**", // 暂时也忽略图片接口
+                "/uploads/**"     // 【新增这一行】放行刚刚配置的静态图片资源
         );
     }
 }

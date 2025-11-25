@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
+import axios from 'axios'; // 引入 axios
 import './Home.css';
 
 const Home = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState({ username: 'Guest' });
     const [viewMode, setViewMode] = useState('grid');
+
+    // 【新增】文件选择器的引用
+    const fileInputRef = useRef(null);
 
     // 【修改点 1】新增状态：用来精准控制谁被悬停，解决闪烁问题
     const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -39,6 +43,7 @@ const Home = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('jwt_token'); // 记得清理 token
         message.success('已退出登录');
         navigate('/welcome');
     };
@@ -125,6 +130,47 @@ const Home = () => {
         }
     }, [viewMode, streamItems]);
 
+    // --- 【新增】点击 Upload 按钮，触发隐藏的文件框 ---
+    const handleUploadClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    // --- 【新增】处理文件选择并上传 ---
+    const handleFileChange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // 1. 准备表单数据
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            message.loading({ content: '正在上传...', key: 'uploading' });
+
+            // 2. 发送请求 (拦截器会自动带上 Token)
+            // 注意：文件上传不需要手动设置 Content-Type，axios 会自动处理 multipart/form-data
+            const res = await axios.post('/api/image/upload', formData);
+
+            if (res.data.code === 200) {
+                message.success({ content: '上传成功！', key: 'uploading' });
+                console.log("上传结果:", res.data.data);
+
+                // TODO: 暂时我们只打印结果，下一步我们将把新图片加到列表中
+                // 你可以复制控制台里的 filePath 去浏览器验证
+            } else {
+                message.error({ content: res.data.msg || '上传失败', key: 'uploading' });
+            }
+        } catch (error) {
+            console.error(error);
+            message.error({ content: '上传出错，请检查网络', key: 'uploading' });
+        } finally {
+            // 清空文件框，允许重复上传同一张图
+            event.target.value = '';
+        }
+    };
+
     return (
         <div className="home-container">
             <aside className="sidebar">
@@ -153,7 +199,20 @@ const Home = () => {
                     <div className="top-actions">
                         {/* ... 视图切换按钮保持不变 ... */}
 
-                        <button className="upload-btn"><i className="ri-upload-cloud-2-line"></i>Upload</button>
+                        {/* <button className="upload-btn"><i className="ri-upload-cloud-2-line"></i>Upload</button> */}
+                        {/* 【修改】Upload 按钮绑定点击事件 */}
+                        <button className="upload-btn" onClick={handleUploadClick}>
+                            <i className="ri-upload-cloud-2-line"></i>Upload
+                        </button>
+
+                        {/* 【新增】隐藏的文件输入框 */}
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            accept="image/*" // 只接受图片
+                            onChange={handleFileChange}
+                        />
 
                         {/* 【修改点 2】删除原来的 img 头像，换成文字问候 */}
                         <div
