@@ -8,6 +8,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.example.backend.filter.JWTAuthenticationFilter; // 【新增】导入 JWT 过滤器
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // 【新增】用于指定过滤器位置
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,10 +44,15 @@ public class SecurityConfig {
                 // 1. 启用我们自定义的 CORS 配置
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // 2. 禁用 CSRF（这是解决 403 的关键一步）
+                // 2. 禁用 CSRF
                 .csrf(csrf -> csrf.disable())
 
-                // 3. 配置授权规则
+                // 3. 【核心修改】添加 JWT 过滤器
+                // 在 UsernamePasswordAuthenticationFilter 之前执行我们的 JWT 过滤器
+                // 这样所有请求到达业务逻辑之前，都会先通过 JWT 检查
+                .addFilterBefore(new JWTAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+
+                // 4. 配置授权规则
                 .authorizeHttpRequests(authorize -> authorize
                         // 所有 OPTIONS 请求（CORS 预检请求）必须放行
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()

@@ -27,10 +27,12 @@ public class UserController {
     }
 
     // 登录接口
+    // 【修改】返回类型从 String 改为 Map<String, Object>
     @PostMapping("/login")
-    public String login(@RequestBody Map<String, String> params) {
+    public Map<String, Object> login(@RequestBody Map<String, String> params) {
         String username = params.get("username");
         String password = params.get("password");
+        // userService.login 现在返回的就是 Map
         return userService.login(username, password);
     }
 

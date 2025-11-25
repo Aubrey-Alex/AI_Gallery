@@ -12,6 +12,10 @@ import manImg from '../../assets/images/welcome/man.jpg';
 import womanImg from '../../assets/images/welcome/woman.jpg';
 import lakeImg from '../../assets/images/welcome/lake.jpg';
 
+// 【新增】配置 axios 基础 URL，假设后端运行在 8080 端口
+// 确保这个全局配置还在，以便于设置拦截器
+axios.defaults.baseURL = 'http://localhost:8080';
+
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -38,20 +42,55 @@ const Login = () => {
             return;
         }
         try {
+            // 后端返回 JSON 结构：{ token: "...", username: "...", userId: 123 }
             const res = await axios.post('/api/user/login', {
                 username, password
             });
-            if (res.data === "登录成功") {
+
+            // 检查后端返回的 JSON 数据中是否包含 Token
+            if (res.data.token) {
+                // ===================================
+                // 登录成功逻辑
+                // ===================================
                 message.success('登录成功！欢迎回来');
-                // 【新增】关键一步：把用户信息存入本地存储
-                localStorage.setItem('userInfo', JSON.stringify({ username: username }));
-                setTimeout(() => navigate('/'), 1000); // 跳转到主页
+
+                // 存储 JWT Token 和完整用户信息
+                localStorage.setItem('jwt_token', res.data.token);
+                localStorage.setItem('userInfo', JSON.stringify({
+                    username: res.data.username,
+                    userId: res.data.userId
+                }));
+
+                // 清空密码输入，立即跳转到主页
+                setPassword('');
+                navigate('/');
             } else {
-                message.error(res.data);
+                // ===================================
+                // 登录失败逻辑（检查 JSON 中的 msg 字段）
+                // ===================================
+                // 后端返回的 JSON 可能是 { msg: "密码错误" }
+                message.error(res.data.msg || '登录失败，请检查用户名和密码');
             }
         } catch (error) {
-            console.error(error);
-            message.error('登录连接失败');
+            console.error("登录错误对象:", error); // 打印整个错误对象
+
+            let errorMessage = '登录连接失败或后端服务未启动';
+
+            if (error.response) {
+                // 如果收到了响应（非网络连接错误）
+                console.error("HTTP Status:", error.response.status);
+
+                if (error.response.status === 404) {
+                    errorMessage = '接口地址错误 (404)';
+                } else if (error.response.status === 500) {
+                    errorMessage = '服务器内部错误 (500)';
+                } else if (error.response.data && error.response.data.msg) {
+                    // 尝试显示后端返回的错误信息（如果是非 200 状态码返回的结构化错误）
+                    errorMessage = error.response.data.msg;
+                }
+            }
+
+            message.error(errorMessage);
         }
     };
 
@@ -96,8 +135,10 @@ const Login = () => {
             if (res.data === "注册成功" || res.data === true) {
                 message.success('注册成功！请直接登录');
 
-                // (可选) 注册成功后是否清空表单？
-                // setUsername(''); setPassword(''); setEmail('');
+                // 【关键修改】清空状态，准备登录
+                setUsername('');
+                setPassword('');
+                setEmail('');
 
                 setIsLogin(true); // 自动切回登录页
             } else {
