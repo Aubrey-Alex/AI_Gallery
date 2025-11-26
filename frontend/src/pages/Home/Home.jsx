@@ -7,7 +7,12 @@ import { message, Modal, Select } from 'antd'; // 引入 Modal 和 Select
 const Home = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState({ username: 'Guest' });
+    // 修改 viewMode 状态，增加 'timeline'
+    // 默认还是 'grid'
     const [viewMode, setViewMode] = useState('grid');
+
+    // 新增状态：当前选中的标签名，用于显示在瀑布流标题上
+    const [timelineTitle, setTimelineTitle] = useState('All Photos');
 
     const [tags, setTags] = useState([]); // 存储侧边栏标签列表
 
@@ -52,13 +57,26 @@ const Home = () => {
     // 【修改 1】把原来的假数据 rawImages 删掉或注释掉，换成 state
     const [images, setImages] = useState([]);
 
-    // 【新增】从后端获取图片列表
-    const fetchImages = async () => {
+    // 【修改】fetchImages 支持参数
+    const fetchImages = async (tag = null) => {
         try {
-            const res = await axios.get('/api/image/list');
+            // 如果有 tag，拼接到 URL 后面；没有则查全部
+            const url = tag ? `/api/image/list?tag=${encodeURIComponent(tag)}` : '/api/image/list';
+
+            const res = await axios.get(url);
             if (res.data.code === 200) {
-                // 后端返回的是列表数组
                 setImages(res.data.data);
+
+                // 【核心逻辑】
+                if (tag) {
+                    // 如果是按标签筛选，自动切到瀑布流模式
+                    setViewMode('timeline');
+                    setTimelineTitle(tag); // 设置标题，如 "Scenery"
+                } else {
+                    // 如果查全部，切回默认网格模式 (或者保持当前模式，看你喜好)
+                    // 这里假设点 "All Photos" 回到网格
+                    setViewMode('grid');
+                }
             }
         } catch (error) {
             console.error("获取图片列表失败:", error);
@@ -323,14 +341,22 @@ const Home = () => {
                 </div>
                 <div className="menu-group">
                     <div className="menu-title">Library</div>
-                    <div className="menu-item active"><i className="ri-gallery-view-2"></i><span>All Photos</span></div>
+                    {/* <div className="menu-item active"><i className="ri-gallery-view-2"></i><span>All Photos</span></div> */}
+                    <div className={`menu-item ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => fetchImages(null)}>
+                        <i className="ri-gallery-view-2"></i><span>All Photos</span>
+                    </div>
                     <div className="menu-item"><i className="ri-heart-3-line"></i><span>Favorites</span></div>
                 </div>
                 <div className="menu-group">
                     <div className="menu-title">My Tags</div>
                     {tags.length > 0 ? (
                         tags.map((tag, index) => (
-                            <div className="menu-item" key={index}>
+                            <div
+                                className={`menu-item ${timelineTitle === tag.tagName && viewMode === 'timeline' ? 'active' : ''}`}
+                                key={index}
+                                // 【核心】点击标签 -> 查筛选数据 -> 变 Timeline
+                                onClick={() => fetchImages(tag.tagName)}
+                            >
                                 <i className="ri-hashtag"></i>
                                 <span>{tag.tagName}</span>
                                 <div className="ai-tag-badge">{tag.count}</div>
@@ -481,6 +507,38 @@ const Home = () => {
                         </div>
                     )}
                 </div>
+
+                {/* 【新增】Timeline View (瀑布流) */}
+                {viewMode === 'timeline' && (
+                    <div className="timeline-view">
+                        <div className="timeline-header">
+                            <h2>{timelineTitle}</h2>
+                            <span className="subtitle">Filtered by Tag</span>
+                        </div>
+
+                        <div className="masonry-grid">
+                            {images.map((img) => (
+                                <div className="masonry-item" key={img.id}>
+                                    <img
+                                        src={`http://localhost:8080${img.thumbnailPath}`}
+                                        className="masonry-img"
+                                        alt="timeline item"
+                                    />
+                                    <div className="card-overlay">
+                                        <div className="card-info">
+                                            <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
+                                            {/* 可以在这里也显示标签 */}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {images.length === 0 && (
+                            <div style={{ color: '#666', padding: '2rem' }}>该标签下暂无照片</div>
+                        )}
+                    </div>
+                )}
 
                 {/* --- 右键菜单 --- */}
                 {contextMenu && (
