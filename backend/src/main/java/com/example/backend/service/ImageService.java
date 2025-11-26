@@ -16,6 +16,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.example.backend.entity.ImageTag;
+import com.example.backend.entity.ImageTagRelation;
+import com.example.backend.mapper.ImageTagMapper;
+import com.example.backend.mapper.ImageTagRelationMapper;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +42,12 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
 
     @Autowired
     private ImageMetadataMapper metadataMapper;
+
+    @Autowired
+    private ImageTagMapper tagMapper;
+
+    @Autowired
+    private ImageTagRelationMapper relationMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public ImageInfo uploadImage(MultipartFile file, Long userId) throws IOException {
@@ -142,5 +155,79 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             // 提取失败不影响上传，返回 null 或空对象即可
             return new ImageMetadata();
         }
+    }
+
+    // 【新增】支持按标签筛选的查询方法
+    public List<ImageInfo> listImagesByTag(Long userId, String tagName) {
+        // 1. 如果没有传 tag，直接查该用户所有图
+        if (tagName == null || tagName.trim().isEmpty()) {
+            QueryWrapper<ImageInfo> query = new QueryWrapper<>();
+            query.eq("user_id", userId);
+            query.orderByDesc("upload_time");
+            return this.list(query);
+        }
+
+        // 2. 如果传了 tag，先查 tagId
+        QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
+        tagQuery.eq("tag_name", tagName);
+        ImageTag tag = tagMapper.selectOne(tagQuery);
+
+        if (tag == null) {
+            return new ArrayList<>(); // 没这个标签，自然没图
+        }
+
+        // 3. 查关联表，找到拥有该 tagId 的所有 imageId
+        QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
+        relQuery.eq("tag_id", tag.getId());
+        List<ImageTagRelation> relations = relationMapper.selectList(relQuery);
+
+        if (relations.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> imageIds = relations.stream().map(ImageTagRelation::getImageId).toList();
+
+        // 4. 最后查 image_info 表
+        QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
+        imgQuery.in("id", imageIds);
+        imgQuery.eq("user_id", userId);
+        imgQuery.orderByDesc("upload_time");
+
+        return this.list(imgQuery);
+    }
+
+    // 【新增】删除图片（同时删除数据库记录和物理文件）
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteImage(Long imageId, Long userId) {
+        // 1. 先查图片是否存在，且是否属于该用户（防止删别人的图）
+        ImageInfo image = this.getById(imageId);
+        if (image == null) {
+            throw new RuntimeException("图片不存在");
+        }
+        if (!image.getUserId().equals(userId)) {
+            throw new RuntimeException("无权删除此图片");
+        }
+
+        // 2. 删除物理文件
+        try {
+            // 还原绝对路径： uploadDir + 文件名
+            // image.getFilePath() 存的是 "/uploads/xxx.jpg"，我们需要去掉 "/uploads/"
+            String fileName = image.getFilePath().replace("/uploads/", "");
+            String thumbName = image.getThumbnailPath().replace("/uploads/", "");
+
+            Path filePath = Paths.get(uploadDir).resolve(fileName);
+            Path thumbPath = Paths.get(uploadDir).resolve(thumbName);
+
+            Files.deleteIfExists(filePath); // 删原图
+            Files.deleteIfExists(thumbPath); // 删缩略图
+        } catch (IOException e) {
+            // 物理文件删除失败不应该阻断数据库删除，打印日志即可
+            System.err.println("物理文件删除失败: " + e.getMessage());
+        }
+
+        // 3. 删除数据库记录
+        // MyBatis-Plus 的级联删除机制通常依赖数据库的外键设置 (ON DELETE CASCADE)
+        // 如果数据库设置了级联，删 image_info 就会自动删 metadata 和 tag_relation
+        this.removeById(imageId);
     }
 }
