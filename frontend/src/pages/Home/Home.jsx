@@ -171,38 +171,58 @@ const Home = () => {
         }
     };
 
-    // --- 【新增】处理文件选择并上传 ---
+    /// --- 【修改】支持批量上传 ---
     const handleFileChange = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+        const files = event.target.files; // 获取所有选中的文件 (FileList)
+        if (!files || files.length === 0) return;
 
-        // 1. 准备表单数据
-        const formData = new FormData();
-        formData.append('file', file);
+        // 为了用户体验，我们显示一个总的加载提示
+        const hideLoading = message.loading({ content: `正在上传 ${files.length} 张图片...`, key: 'uploading', duration: 0 });
+
+        let successCount = 0;
+        let failCount = 0;
 
         try {
-            message.loading({ content: '正在上传...', key: 'uploading' });
+            // 使用 Promise.all 并发上传所有图片
+            // 将 FileList 转换为数组进行 map
+            const uploadPromises = Array.from(files).map(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
 
-            // 2. 发送请求 (拦截器会自动带上 Token)
-            // 注意：文件上传不需要手动设置 Content-Type，axios 会自动处理 multipart/form-data
-            const res = await axios.post('/api/image/upload', formData);
+                try {
+                    const res = await axios.post('/api/image/upload', formData);
+                    if (res.data.code === 200) {
+                        successCount++;
+                        return true;
+                    } else {
+                        failCount++;
+                        return false;
+                    }
+                } catch (error) {
+                    console.error(`文件 ${file.name} 上传失败:`, error);
+                    failCount++;
+                    return false;
+                }
+            });
 
-            if (res.data.code === 200) {
-                message.success({ content: '上传成功！', key: 'uploading' });
-                // console.log("上传结果:", res.data.data);
-                // 【修改 3】上传成功后，重新获取一次列表，这样新图就能马上显示出来！
-                fetchImages();
+            // 等待所有上传完成
+            await Promise.all(uploadPromises);
 
-                // TODO: 暂时我们只打印结果，下一步我们将把新图片加到列表中
-                // 你可以复制控制台里的 filePath 去浏览器验证
+            // 结果反馈
+            if (failCount === 0) {
+                message.success({ content: `成功上传 ${successCount} 张图片！`, key: 'uploading' });
             } else {
-                message.error({ content: res.data.msg || '上传失败', key: 'uploading' });
+                message.warning({ content: `完成：${successCount} 张成功，${failCount} 张失败`, key: 'uploading' });
             }
+
+            // 上传完成后，刷新列表
+            fetchImages();
+
         } catch (error) {
-            console.error(error);
-            message.error({ content: '上传出错，请检查网络', key: 'uploading' });
+            console.error("批量上传过程出错:", error);
+            message.error({ content: '批量上传异常', key: 'uploading' });
         } finally {
-            // 清空文件框，允许重复上传同一张图
+            // 无论成功失败，都清空文件选择框，允许再次上传同样的文件
             event.target.value = '';
         }
     };
@@ -263,6 +283,7 @@ const Home = () => {
                             ref={fileInputRef}
                             style={{ display: 'none' }}
                             accept="image/*" // 只接受图片
+                            multiple
                             onChange={handleFileChange}
                         />
 
