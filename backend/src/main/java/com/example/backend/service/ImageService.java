@@ -61,7 +61,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         // 4. 生成缩略图 (压缩到宽 300px)
         Path thumbLocation = uploadPath.resolve(thumbnailName);
         Thumbnails.of(targetLocation.toFile())
-                .size(300, 300)
+                .size(600, 1000)
                 .outputQuality(0.8)
                 .toFile(thumbLocation.toFile());
 
