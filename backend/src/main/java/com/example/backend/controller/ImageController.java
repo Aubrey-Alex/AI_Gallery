@@ -11,6 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
+// 引入 QueryWrapper
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/image")
@@ -46,6 +49,38 @@ public class ImageController {
             e.printStackTrace();
             result.put("code", 500);
             result.put("msg", "上传失败: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 获取当前用户的图片列表
+     * URL: GET /api/image/list
+     */
+    @GetMapping("/list")
+    public Map<String, Object> list() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // 1. 获取当前用户 ID
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = (Long) authentication.getPrincipal();
+
+            // 2. 查询数据库 (使用 MyBatis-Plus)
+            QueryWrapper<ImageInfo> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId); // 只查自己的图
+            queryWrapper.orderByDesc("upload_time"); // 按时间倒序，新图在前
+
+            List<ImageInfo> list = imageService.list(queryWrapper);
+
+            // 3. 返回结果
+            result.put("code", 200);
+            result.put("msg", "获取成功");
+            result.put("data", list);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("code", 500);
+            result.put("msg", "获取失败: " + e.getMessage());
         }
         return result;
     }

@@ -19,16 +19,32 @@ const Home = () => {
     const [streamItems, setStreamItems] = useState([]);
     const [isFlowing, setIsFlowing] = useState(false);
 
-    const rawImages = [
-        { id: 1, url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&q=80', title: 'AI Tech', tag: '#Cyber' },
-        { id: 2, url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80', title: 'Highland', tag: '#Nature' },
-        { id: 3, url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80', title: 'Modern', tag: '#Building' },
-        { id: 4, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80', title: 'Portrait', tag: '#Woman' },
-        { id: 5, url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&q=80', title: 'City Life', tag: '#Urban' },
-        { id: 6, url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80', title: 'Cute Dog', tag: '#Pet' },
-        { id: 7, url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', title: 'Seaside', tag: '#Ocean' },
-        { id: 8, url: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80', title: 'Fresh Food', tag: '#Lunch' },
-    ];
+    // const rawImages = [
+    //     { id: 1, url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&q=80', title: 'AI Tech', tag: '#Cyber' },
+    //     { id: 2, url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80', title: 'Highland', tag: '#Nature' },
+    //     { id: 3, url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80', title: 'Modern', tag: '#Building' },
+    //     { id: 4, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80', title: 'Portrait', tag: '#Woman' },
+    //     { id: 5, url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&q=80', title: 'City Life', tag: '#Urban' },
+    //     { id: 6, url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80', title: 'Cute Dog', tag: '#Pet' },
+    //     { id: 7, url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', title: 'Seaside', tag: '#Ocean' },
+    //     { id: 8, url: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80', title: 'Fresh Food', tag: '#Lunch' },
+    // ];
+
+    // 【修改 1】把原来的假数据 rawImages 删掉或注释掉，换成 state
+    const [images, setImages] = useState([]);
+
+    // 【新增】从后端获取图片列表
+    const fetchImages = async () => {
+        try {
+            const res = await axios.get('/api/image/list');
+            if (res.data.code === 200) {
+                // 后端返回的是列表数组
+                setImages(res.data.data);
+            }
+        } catch (error) {
+            console.error("获取图片列表失败:", error);
+        }
+    };
 
     // 1. 用户检查
     useEffect(() => {
@@ -38,6 +54,8 @@ const Home = () => {
             navigate('/welcome');
         } else {
             setUser(JSON.parse(storedUser));
+            // 【修改 2】登录确认后，立即获取图片数据
+            fetchImages();
         }
     }, [navigate]);
 
@@ -48,17 +66,33 @@ const Home = () => {
         navigate('/welcome');
     };
 
-    // 2. 数据准备
+    // 2. 数据准备 (修改：使用真实的 images 数据)
     useEffect(() => {
         if (viewMode === 'stream') {
-            const loopData = [...rawImages, ...rawImages];
+            // 如果没有图，就不做处理
+            if (images.length === 0) {
+                setStreamItems([]);
+                return;
+            }
+
+            // 为了流体效果更好，我们把图片列表复制一份拼接起来 (loopData)
+            // 这样图片少的时候也能有流动的效果
+            // --- 【核心修改开始】 ---
+
+            // 1. 先创建一个足够长的“基础列表”
+            // 我们假设屏幕很宽，至少需要 15 张图才能铺满并留有余量
+            let baseList = [...images];
+
+            // 2. 为了配合 CSS 的 -50% 移动动画，我们需要两份一样的基础列表
+            // 结构变成：[足够长的列表 A] + [足够长的列表 A (副本)]
+            const loopData = [...baseList, ...baseList];
             setStreamItems(loopData);
             setIsFlowing(false);
-            setHoveredIndex(null); // 切换模式时重置悬停状态
+            setHoveredIndex(null);
         } else {
             setStreamItems([]);
         }
-    }, [viewMode]);
+    }, [viewMode, images]); // 注意：依赖项里加上 images
 
     // 3. 核心动画逻辑 (保持你原有的逻辑不变)
     useEffect(() => {
@@ -155,7 +189,9 @@ const Home = () => {
 
             if (res.data.code === 200) {
                 message.success({ content: '上传成功！', key: 'uploading' });
-                console.log("上传结果:", res.data.data);
+                // console.log("上传结果:", res.data.data);
+                // 【修改 3】上传成功后，重新获取一次列表，这样新图就能马上显示出来！
+                fetchImages();
 
                 // TODO: 暂时我们只打印结果，下一步我们将把新图片加到列表中
                 // 你可以复制控制台里的 filePath 去浏览器验证
@@ -198,6 +234,22 @@ const Home = () => {
                     </div>
                     <div className="top-actions">
                         {/* ... 视图切换按钮保持不变 ... */}
+                        <div className="view-toggles">
+                            <button
+                                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                                onClick={() => setViewMode('grid')}
+                                title="Grid View"
+                            >
+                                <i className="ri-grid-fill"></i>
+                            </button>
+                            <button
+                                className={`view-btn ${viewMode === 'stream' ? 'active' : ''}`}
+                                onClick={() => setViewMode('stream')}
+                                title="3D Stream View"
+                            >
+                                <i className="ri-film-line"></i>
+                            </button>
+                        </div>
 
                         {/* <button className="upload-btn"><i className="ri-upload-cloud-2-line"></i>Upload</button> */}
                         {/* 【修改】Upload 按钮绑定点击事件 */}
@@ -229,17 +281,34 @@ const Home = () => {
                 <div className={`gallery-viewport mode-${viewMode}`}>
                     {viewMode === 'grid' && (
                         <div className="grid-layout">
-                            {rawImages.map((img) => (
+                            {/* 【修改 4】渲染真实的 images 数据 */}
+                            {/* 注意：后端返回的字段是 thumbnailPath，我们需要拼上完整的 URL */}
+                            {images.map((img) => (
                                 <div className="card-item" key={img.id}>
-                                    <img src={img.url} className="card-img" alt={img.title} loading="lazy" />
+                                    <img
+                                        // 拼接后端地址 + 缩略图路径
+                                        src={`http://localhost:8080${img.thumbnailPath}`}
+                                        className="card-img"
+                                        alt="user upload"
+                                        loading="lazy"
+                                    />
                                     <div className="card-overlay">
                                         <div className="card-info">
-                                            <h4>{img.title}</h4>
-                                            <span className="ai-tag">{img.tag}</span>
+                                            {/* 暂时没有标题，先显示上传时间或文件名 */}
+                                            <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
+                                            {/* 标签功能还没做，暂时留空或写死 */}
+                                            <span className="ai-tag">#Photo</span>
                                         </div>
                                     </div>
                                 </div>
                             ))}
+
+                            {/* 如果没有图片，显示一点提示 */}
+                            {images.length === 0 && (
+                                <div style={{ color: '#666', padding: '2rem' }}>
+                                    还没有照片，快去上传第一张吧！
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -249,22 +318,28 @@ const Home = () => {
                             className={`stream-wrapper ${isFlowing ? 'is-flowing' : ''}`}
                             style={{ width: `${streamItems.length * 160}px` }}
                         >
-                            {/* 【修改点 2】使用 state 控制 className，并绑定事件 */}
                             {streamItems.map((img, index) => (
                                 <div
                                     className={`card-item card-in-stream ${hoveredIndex === index ? 'is-active' : ''}`}
+                                    // 注意：因为我们复制了数据，id会重复，所以key要加上index
                                     key={`${img.id}-${index}`}
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onMouseLeave={() => setHoveredIndex(null)}
                                 >
-                                    <img src={img.url} className="card-img" alt={img.title} />
+                                    {/* 【核心修改】拼接后端地址 + 缩略图路径 */}
+                                    <img
+                                        src={`http://localhost:8080${img.thumbnailPath}`}
+                                        className="card-img"
+                                        alt="stream item"
+                                    />
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+
+            </main >
+        </div >
     );
 };
 
