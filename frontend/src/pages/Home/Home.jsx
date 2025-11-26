@@ -222,6 +222,33 @@ const Home = () => {
         }
     };
 
+    // --- 【核心】保存编辑后的图片逻辑 ---
+    const handleSaveEditedImage = async (base64Data) => {
+        const hideLoading = message.loading('正在保存新图片...', 0);
+
+        try {
+            const res = await axios.post('/api/image/save-edited', {
+                base64: base64Data
+            });
+
+            if (res.data.code === 200) {
+                message.success('编辑成功！已保存为新图片');
+                setIsEditorOpen(false); // 关闭弹窗
+
+                // 刷新列表，让新图片显示在最前面
+                fetchImages(currentTag);
+
+            } else {
+                message.error(res.data.msg || '保存失败');
+            }
+        } catch (error) {
+            console.error("保存出错:", error);
+            message.error('保存请求异常');
+        } finally {
+            hideLoading();
+        }
+    };
+
     // --- 【修改后】更健壮的删除逻辑 ---
     const handleDelete = async () => {
         if (selectedIds.length === 0) return;
@@ -662,12 +689,7 @@ const Home = () => {
                     onClose={() => setIsEditorOpen(false)}
                     // 传入大图路径 (filePath)
                     imageSrc={editingImage ? `http://localhost:8080${editingImage.filePath}` : ''}
-                    onSave={(finalState) => {
-                        console.log("保存参数：", finalState);
-                        // TODO: 这里未来可以对接后端保存接口，把 finalState 发给服务器
-                        message.success("编辑参数已保存 (模拟)");
-                        setIsEditorOpen(false);
-                    }}
+                    onSave={handleSaveEditedImage}
                 />
 
             </main >

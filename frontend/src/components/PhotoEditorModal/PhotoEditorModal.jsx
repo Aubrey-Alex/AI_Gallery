@@ -9,28 +9,61 @@ const PhotoEditorModal = ({ isOpen, onClose, imageSrc, onSave }) => {
     console.log('ImageSrc:', imageSrc);
     const [activeGroup, setActiveGroup] = useState('light');
     const cropperRef = useRef(null); // 引用 Cropper 实例
+    // 【新增】用来记录图片刚加载时的初始缩放值
+    const baseZoom = useRef(0);
 
     // 核心编辑状态
-    const [editState, setEditState] = useState({
-        // --- Light ---
+    // 【修复】在这里定义初始状态常量
+    const INITIAL_STATE = {
         exposure: 0, contrast: 0, highlights: 0, shadows: 0,
-        // --- Color ---
         temp: 0, tint: 0, vibrance: 0, saturation: 0,
-        // --- Effects ---
         texture: 0, clarity: 0, dehaze: 0,
-        // --- Geometry ---
-        rotate: 0 // 旋转角度
-    });
+        rotate: 0
+    };
 
-    // 更新状态
+    // 核心编辑状态
+    const [editState, setEditState] = useState(INITIAL_STATE); // 使用常量初始化
+
+    // 【核心修复】监听 isOpen 变化，每次打开时重置所有状态
+    useEffect(() => {
+        if (isOpen) {
+            // 重置 React 状态
+            setEditState(INITIAL_STATE);
+            // 重置基准缩放
+            baseZoom.current = 0;
+            // 重置菜单折叠
+            setActiveGroup('light');
+
+            // 重置 Cropper (如果有残留实例)
+            if (cropperRef.current && cropperRef.current.cropper) {
+                cropperRef.current.cropper.reset();
+            }
+        }
+    }, [isOpen]); // 依赖 isOpen，每次打开都会触发
+
+    // 【核心修改】更新状态函数
     const updateState = (key, value) => {
         const val = parseFloat(value);
         setEditState(prev => ({ ...prev, [key]: val }));
 
-        // 特殊处理旋转：实时同步给 Cropper
+        // 特殊处理旋转：实现“边旋转边自动缩放”
         if (key === 'rotate' && cropperRef.current) {
             const cropper = cropperRef.current.cropper;
+
+            // 1. 执行旋转
             cropper.rotateTo(val);
+
+            // 2. 计算自动缩放比例 (关键算法)
+            // 目的：旋转后放大图片，确保裁剪框内没有黑边
+            const radians = (val * Math.PI) / 180; // 转弧度
+            // 缩放系数 = |cosθ| + |sinθ|
+            // 这个公式能保证正方形区域旋转时始终填满
+            const zoomFactor = Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians));
+
+            // 3. 应用缩放 (基于初始缩放值 baseZoom)
+            if (baseZoom.current > 0) {
+                cropper.zoomTo(baseZoom.current * zoomFactor);
+            }
         }
     };
 
@@ -43,7 +76,13 @@ const PhotoEditorModal = ({ isOpen, onClose, imageSrc, onSave }) => {
             rotate: 0
         });
         if (cropperRef.current) {
-            cropperRef.current.cropper.reset(); // 重置裁剪框和旋转
+            const cropper = cropperRef.current.cropper;
+            cropper.reset();
+            // 重置时，把旋转和缩放都恢复到初始状态
+            cropper.rotateTo(0);
+            if (baseZoom.current > 0) {
+                cropper.zoomTo(baseZoom.current);
+            }
         }
         message.info('已重置所有参数');
     };
@@ -151,10 +190,15 @@ const PhotoEditorModal = ({ isOpen, onClose, imageSrc, onSave }) => {
 
                         ref={cropperRef}
 
-                        // 【修复不显示】图片加载完成后，强制重算一次尺寸
+                        // 【核心修改】初始化完成后，记录“基准缩放值”
                         ready={(e) => {
                             if (e.target && e.target.cropper) {
-                                e.target.cropper.resize();
+                                // 获取当前自动适应屏幕后的 zoom 数据
+                                const initialData = e.target.cropper.getCanvasData();
+                                // 计算当前的 zoom (width / naturalWidth)
+                                const imgData = e.target.cropper.getImageData();
+                                // 记录这个基准值，后续旋转缩放都基于这个值
+                                baseZoom.current = imgData.width / imgData.naturalWidth;
                             }
                         }}
                     />
@@ -214,10 +258,10 @@ const PhotoEditorModal = ({ isOpen, onClose, imageSrc, onSave }) => {
                         </div>
                         <div className={`group-content ${activeGroup === 'geo' ? 'show' : ''}`}>
                             {/* 调用 Cropper 自带的旋转 */}
-                            <Slider label="旋转 (Rotate)" value={editState.rotate} min={-180} max={180} step={0.5} onChange={v => updateState('rotate', v)} />
+                            <Slider label="旋转 (Rotate)" value={editState.rotate} min={0} max={360} step={0.5} onChange={v => updateState('rotate', v)} />
 
                             <div style={{ marginTop: '10px', color: '#666', fontSize: '0.8rem' }}>
-                                * 直接在左侧图片上拖动方框即可裁剪
+                                * 旋转时系统会自动放大图片以填满画布
                             </div>
                         </div>
                     </div>
