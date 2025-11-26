@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // 引入 axios
 import './Home.css';
 import { message, Modal, Select } from 'antd'; // 引入 Modal 和 Select
+import PhotoEditorModal from '../../components/PhotoEditorModal/PhotoEditorModal';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -19,6 +20,17 @@ const Home = () => {
 
     // 【新增】文件选择器的引用
     const fileInputRef = useRef(null);
+
+    // 编辑器相关状态
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [editingImage, setEditingImage] = useState(null);
+
+    // 3. 【新增】打开编辑器的辅助函数
+    const handleOpenEditor = (img) => {
+        setEditingImage(img);
+        setIsEditorOpen(true);
+        setContextMenu(null); // 如果是从右键打开的，顺便关掉菜单
+    };
 
     // 【修改点 1】新增状态：用来精准控制谁被悬停，解决闪烁问题
     const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -335,7 +347,8 @@ const Home = () => {
         // 设置菜单位置
         setContextMenu({
             x: e.clientX,
-            y: e.clientY
+            y: e.clientY,
+            targetId: id
         });
     };
 
@@ -480,6 +493,8 @@ const Home = () => {
                                         key={img.id}
                                         // 绑定左键点击事件 (多选)
                                         onClick={() => handleCardClick(img.id)}
+                                        // 【新增】双击打开编辑器
+                                        onDoubleClick={() => handleOpenEditor(img)}
                                         // 绑定右键点击事件 (呼出菜单)
                                         onContextMenu={(e) => handleContextMenu(e, img.id)}
                                     >
@@ -539,6 +554,8 @@ const Home = () => {
                                     key={`${img.id}-${index}`}
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onMouseLeave={() => setHoveredIndex(null)}
+                                    // 【新增】双击打开编辑器
+                                    onDoubleClick={() => handleOpenEditor(img)}
                                 >
                                     {/* 【核心修改】拼接后端地址 + 缩略图路径 */}
                                     <img
@@ -591,6 +608,14 @@ const Home = () => {
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* 【新增】编辑按钮 */}
+                        <div className="context-menu-item" onClick={() => {
+                            // 根据 ID 找到图片对象
+                            const targetImg = images.find(i => i.id === contextMenu.targetId);
+                            if (targetImg) handleOpenEditor(targetImg);
+                        }}>
+                            <i className="ri-edit-2-line"></i> 编辑图片
+                        </div>
                         <div className="context-menu-item" onClick={() => {
                             setIsTagModalOpen(true);
                             setContextMenu(null);
@@ -629,6 +654,21 @@ const Home = () => {
                         tokenSeparators={[',', ' ']}
                     />
                 </Modal>
+
+                {/* --- 【新增】图片编辑器 Modal --- */}
+                {/* 这个组件通常放在最外层或者 main 的最后，只要它被渲染出来就行 */}
+                <PhotoEditorModal
+                    isOpen={isEditorOpen}
+                    onClose={() => setIsEditorOpen(false)}
+                    // 传入大图路径 (filePath)
+                    imageSrc={editingImage ? `http://localhost:8080${editingImage.filePath}` : ''}
+                    onSave={(finalState) => {
+                        console.log("保存参数：", finalState);
+                        // TODO: 这里未来可以对接后端保存接口，把 finalState 发给服务器
+                        message.success("编辑参数已保存 (模拟)");
+                        setIsEditorOpen(false);
+                    }}
+                />
 
             </main >
         </div >
