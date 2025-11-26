@@ -19,7 +19,8 @@ public class WebSecurityConfig {
                 "/api/user/register",
                 "/api/user/hello",
 //                "/api/image/**", // 暂时也忽略图片接口
-                "/uploads/**"     // 【新增这一行】放行刚刚配置的静态图片资源
+                "/uploads/**"    // 【新增这一行】放行刚刚配置的静态图片资源
+//                "/api/tag/**" // 【新增】暂时放行 Tag 接口，方便调试
         );
     }
 }

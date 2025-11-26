@@ -389,3 +389,61 @@
 ::-webkit-scrollbar {
     display: none;
 }
+
+/* --- 多选与选中样式 --- */
+.card-item.is-selected {
+    border: 3px solid #FF5722;
+    /* 选中时显示橙色边框 */
+    transform: scale(0.95);
+    /* 稍微缩小一点 */
+}
+
+.check-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #FF5722;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 自定义右键菜单 --- */
+.context-menu {
+    position: fixed;
+    background: #1F1F1F;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    padding: 5px 0;
+    min-width: 150px;
+}
+
+.context-menu-item {
+    padding: 10px 15px;
+    color: #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #FF5722;
+    color: white;
+}
+
+.tags-row {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}

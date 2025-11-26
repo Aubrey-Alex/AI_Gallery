@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message } from 'antd';
 import axios from 'axios'; // 引入 axios
 import './Home.css';
+import { message, Modal, Select } from 'antd'; // 引入 Modal 和 Select
 
 const Home = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState({ username: 'Guest' });
     const [viewMode, setViewMode] = useState('grid');
+
+    const [tags, setTags] = useState([]); // 存储侧边栏标签列表
 
     // 【新增】文件选择器的引用
     const fileInputRef = useRef(null);
@@ -18,6 +20,11 @@ const Home = () => {
     const streamWrapperRef = useRef(null);
     const [streamItems, setStreamItems] = useState([]);
     const [isFlowing, setIsFlowing] = useState(false);
+    // --- 【新增】多选与标签相关状态 ---
+    const [selectedIds, setSelectedIds] = useState([]); // 存储被选中的图片ID
+    const [contextMenu, setContextMenu] = useState(null); // 存储右键菜单位置 {x, y}
+    const [isTagModalOpen, setIsTagModalOpen] = useState(false); // 标签弹窗开关
+    const [inputTags, setInputTags] = useState([]); // 用户输入的标签
 
     // const rawImages = [
     //     { id: 1, url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&q=80', title: 'AI Tech', tag: '#Cyber' },
@@ -29,6 +36,18 @@ const Home = () => {
     //     { id: 7, url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', title: 'Seaside', tag: '#Ocean' },
     //     { id: 8, url: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80', title: 'Fresh Food', tag: '#Lunch' },
     // ];
+
+    // 获取标签列表
+    const fetchTags = async () => {
+        try {
+            const res = await axios.get('/api/tag/list');
+            if (res.data.code === 200) {
+                setTags(res.data.data);
+            }
+        } catch (error) {
+            console.error("获取标签失败", error);
+        }
+    };
 
     // 【修改 1】把原来的假数据 rawImages 删掉或注释掉，换成 state
     const [images, setImages] = useState([]);
@@ -56,6 +75,7 @@ const Home = () => {
             setUser(JSON.parse(storedUser));
             // 【修改 2】登录确认后，立即获取图片数据
             fetchImages();
+            fetchTags(); // 【新增】同时也获取标签
         }
     }, [navigate]);
 
@@ -227,6 +247,73 @@ const Home = () => {
         }
     };
 
+    // --- 1. 处理图片点击 (多选逻辑) ---
+    const handleCardClick = (id) => {
+        // 如果右键菜单打开中，先关闭它
+        if (contextMenu) setContextMenu(null);
+
+        setSelectedIds(prev => {
+            if (prev.includes(id)) {
+                return prev.filter(item => item !== id); // 反选
+            } else {
+                return [...prev, id]; // 选中
+            }
+        });
+    };
+
+    // --- 2. 处理右键点击 (呼出菜单) ---
+    const handleContextMenu = (e, id) => {
+        e.preventDefault(); // 阻止浏览器默认右键菜单
+
+        // 如果当前图片还没被选中，自动帮用户选中它
+        if (!selectedIds.includes(id)) {
+            setSelectedIds(prev => [...prev, id]);
+        }
+
+        // 设置菜单位置
+        setContextMenu({
+            x: e.clientX,
+            y: e.clientY
+        });
+    };
+
+    // --- 3. 点击页面其他地方关闭菜单 ---
+    useEffect(() => {
+        const handleClickOutside = () => setContextMenu(null);
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
+
+    // --- 4. 提交标签到后端 ---
+    const handleAddTags = async () => {
+        if (inputTags.length === 0) {
+            message.warning("请输入至少一个标签");
+            return;
+        }
+
+        try {
+            const res = await axios.post('/api/tag/batch-add', {
+                imageIds: selectedIds,
+                tags: inputTags
+            });
+
+            if (res.data.code === 200) {
+                message.success(`成功给 ${selectedIds.length} 张图片打上标签！`);
+                setIsTagModalOpen(false); // 关闭弹窗
+                setInputTags([]); // 清空输入
+                setSelectedIds([]); // 清空选中
+
+                fetchImages();
+                fetchTags();
+            } else {
+                message.error(res.data.msg);
+            }
+        } catch (error) {
+            console.error(error);
+            message.error("打标签失败");
+        }
+    };
+
     return (
         <div className="home-container">
             <aside className="sidebar">
@@ -240,9 +327,18 @@ const Home = () => {
                     <div className="menu-item"><i className="ri-heart-3-line"></i><span>Favorites</span></div>
                 </div>
                 <div className="menu-group">
-                    <div className="menu-title">AI Smart Tags</div>
-                    <div className="menu-item"><i className="ri-landscape-line"></i><span>Scenery</span><div className="ai-tag-badge">12</div></div>
-                    <div className="menu-item"><i className="ri-user-smile-line"></i><span>Portraits</span><div className="ai-tag-badge">8</div></div>
+                    <div className="menu-title">My Tags</div>
+                    {tags.length > 0 ? (
+                        tags.map((tag, index) => (
+                            <div className="menu-item" key={index}>
+                                <i className="ri-hashtag"></i>
+                                <span>{tag.tagName}</span>
+                                <div className="ai-tag-badge">{tag.count}</div>
+                            </div>
+                        ))
+                    ) : (
+                        <div style={{ padding: '10px', color: '#444', fontSize: '0.8rem' }}>暂无标签</div>
+                    )}
                 </div>
             </aside>
 
@@ -302,29 +398,56 @@ const Home = () => {
                 <div className={`gallery-viewport mode-${viewMode}`}>
                     {viewMode === 'grid' && (
                         <div className="grid-layout">
-                            {/* 【修改 4】渲染真实的 images 数据 */}
-                            {/* 注意：后端返回的字段是 thumbnailPath，我们需要拼上完整的 URL */}
-                            {images.map((img) => (
-                                <div className="card-item" key={img.id}>
-                                    <img
-                                        // 拼接后端地址 + 缩略图路径
-                                        src={`http://localhost:8080${img.thumbnailPath}`}
-                                        className="card-img"
-                                        alt="user upload"
-                                        loading="lazy"
-                                    />
-                                    <div className="card-overlay">
-                                        <div className="card-info">
-                                            {/* 暂时没有标题，先显示上传时间或文件名 */}
-                                            <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
-                                            {/* 标签功能还没做，暂时留空或写死 */}
-                                            <span className="ai-tag">#Photo</span>
+                            {/* 【修改】Grid 渲染部分：整合多选和右键菜单 */}
+                            {images.map((img) => {
+                                // 判断当前图片是否被选中
+                                const isSelected = selectedIds.includes(img.id);
+
+                                return (
+                                    <div
+                                        // 选中时添加 is-selected 类 (CSS会给它加橙色边框)
+                                        className={`card-item ${isSelected ? 'is-selected' : ''}`}
+                                        key={img.id}
+                                        // 绑定左键点击事件 (多选)
+                                        onClick={() => handleCardClick(img.id)}
+                                        // 绑定右键点击事件 (呼出菜单)
+                                        onContextMenu={(e) => handleContextMenu(e, img.id)}
+                                    >
+                                        {/* 选中时的对勾图标 */}
+                                        {isSelected && (
+                                            <div className="check-icon">
+                                                <i className="ri-check-line"></i>
+                                            </div>
+                                        )}
+
+                                        <img
+                                            src={`http://localhost:8080${img.thumbnailPath}`}
+                                            className="card-img"
+                                            alt="user upload"
+                                            loading="lazy"
+                                        />
+                                        <div className="card-overlay">
+                                            <div className="card-info">
+                                                <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
+
+                                                {/* 【修改】渲染真实标签 */}
+                                                <div className="tags-row">
+                                                    {img.tags && img.tags.length > 0 ? (
+                                                        img.tags.slice(0, 3).map((tag, i) => ( // 最多显示3个，防止换行
+                                                            <span className="ai-tag" key={i}>#{tag}</span>
+                                                        ))
+                                                    ) : (
+                                                        <span className="ai-tag" style={{ opacity: 0.5 }}>#无标签</span>
+                                                    )}
+                                                </div>
+
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
 
-                            {/* 如果没有图片，显示一点提示 */}
+                            {/* 空状态提示 */}
                             {images.length === 0 && (
                                 <div style={{ color: '#666', padding: '2rem' }}>
                                     还没有照片，快去上传第一张吧！
@@ -358,6 +481,46 @@ const Home = () => {
                         </div>
                     )}
                 </div>
+
+                {/* --- 右键菜单 --- */}
+                {contextMenu && (
+                    <div
+                        className="context-menu"
+                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="context-menu-item" onClick={() => {
+                            setIsTagModalOpen(true);
+                            setContextMenu(null);
+                        }}>
+                            <i className="ri-price-tag-3-line"></i> 添加标签 ({selectedIds.length})
+                        </div>
+                        <div className="context-menu-item" style={{ color: '#ff4d4f' }}>
+                            <i className="ri-delete-bin-line"></i> 删除图片
+                        </div>
+                    </div>
+                )}
+
+                {/* --- 打标签弹窗 --- */}
+                <Modal
+                    title="添加自定义标签"
+                    open={isTagModalOpen}
+                    onOk={handleAddTags}
+                    onCancel={() => setIsTagModalOpen(false)}
+                    okText="确认添加"
+                    cancelText="取消"
+                    centered
+                >
+                    <p style={{ marginBottom: '10px' }}>正在为 {selectedIds.length} 张图片添加标签：</p>
+                    <Select
+                        mode="tags"
+                        style={{ width: '100%' }}
+                        placeholder="输入标签后按回车 (如: 杭州, 旅游)"
+                        value={inputTags}
+                        onChange={setInputTags}
+                        tokenSeparators={[',', ' ']}
+                    />
+                </Modal>
 
             </main >
         </div >

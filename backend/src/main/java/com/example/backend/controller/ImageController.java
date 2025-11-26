@@ -1,8 +1,10 @@
 package com.example.backend.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.backend.entity.ImageInfo;
+import com.example.backend.entity.ImageVO;
 import com.example.backend.service.ImageService;
-import com.example.backend.utils.JWTUtils; // 假设你需要解析Token获取用户ID，或者直接从SecurityContext获取
+import com.example.backend.service.TagService; // 【新增】用于查询标签
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,10 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
-import java.util.Map;
-// 引入 QueryWrapper
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/image")
@@ -23,27 +24,24 @@ public class ImageController {
     @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private TagService tagService; // 【新增】注入 TagService
+
     /**
      * 图片上传接口
-     * URL: POST /api/image/upload
-     * Content-Type: multipart/form-data
      */
     @PostMapping("/upload")
     public Map<String, Object> upload(@RequestParam("file") MultipartFile file) {
         Map<String, Object> result = new HashMap<>();
         try {
-            // 1. 获取当前登录用户 ID
-            // 我们的 JWTAuthenticationFilter 已经把 userId 放入了 Authentication 的 principal 中
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long userId = (Long) authentication.getPrincipal();
 
-            // 2. 调用 Service 处理上传
             ImageInfo imageInfo = imageService.uploadImage(file, userId);
 
-            // 3. 返回成功结果
             result.put("code", 200);
             result.put("msg", "上传成功");
-            result.put("data", imageInfo); // 返回图片信息（包含访问路径）
+            result.put("data", imageInfo);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,28 +52,40 @@ public class ImageController {
     }
 
     /**
-     * 获取当前用户的图片列表
+     * 获取当前用户的图片列表 (包含标签)
      * URL: GET /api/image/list
      */
     @GetMapping("/list")
     public Map<String, Object> list() {
         Map<String, Object> result = new HashMap<>();
         try {
-            // 1. 获取当前用户 ID
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long userId = (Long) authentication.getPrincipal();
 
-            // 2. 查询数据库 (使用 MyBatis-Plus)
             QueryWrapper<ImageInfo> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("user_id", userId); // 只查自己的图
-            queryWrapper.orderByDesc("upload_time"); // 按时间倒序，新图在前
+            queryWrapper.eq("user_id", userId);
+            queryWrapper.orderByDesc("upload_time");
 
             List<ImageInfo> list = imageService.list(queryWrapper);
 
-            // 3. 返回结果
+            // 【核心修改】将 ImageInfo 转换为 ImageVO 并填充标签
+            List<ImageVO> voList = list.stream().map(img -> {
+                ImageVO vo = new ImageVO();
+                // 复制属性
+                vo.setId(img.getId());
+                vo.setUserId(img.getUserId());
+                vo.setFilePath(img.getFilePath());
+                vo.setThumbnailPath(img.getThumbnailPath());
+                vo.setUploadTime(img.getUploadTime());
+
+                // 查标签并填充
+                vo.setTags(tagService.getTagsByImageId(img.getId()));
+                return vo;
+            }).collect(Collectors.toList());
+
             result.put("code", 200);
             result.put("msg", "获取成功");
-            result.put("data", list);
+            result.put("data", voList); // 返回新的 voList
 
         } catch (Exception e) {
             e.printStackTrace();
