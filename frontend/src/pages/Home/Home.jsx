@@ -15,6 +15,7 @@ const Home = () => {
     const [timelineTitle, setTimelineTitle] = useState('All Photos');
 
     const [tags, setTags] = useState([]); // 存储侧边栏标签列表
+    const [currentTag, setCurrentTag] = useState(null);
 
     // 【新增】文件选择器的引用
     const fileInputRef = useRef(null);
@@ -206,6 +207,49 @@ const Home = () => {
     const handleUploadClick = () => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
+        }
+    };
+
+    // --- 【修改后】更健壮的删除逻辑 ---
+    const handleDelete = async () => {
+        if (selectedIds.length === 0) return;
+
+        if (!window.confirm(`确定要删除这 ${selectedIds.length} 张图片吗？`)) {
+            return;
+        }
+
+        const hideLoading = message.loading('正在删除...', 0);
+
+        try {
+            // 1. 使用 allSettled，即使有个别失败，也不会中断整个流程
+            const results = await Promise.allSettled(selectedIds.map(id => axios.delete(`/api/image/${id}`)));
+
+            // 2. 统计成功和失败的数量
+            const successCount = results.filter(r => r.status === 'fulfilled' && r.value.data.code === 200).length;
+            const failCount = selectedIds.length - successCount;
+
+            // 3. 根据结果显示提示
+            if (failCount === 0) {
+                message.success('删除成功');
+            } else if (successCount > 0) {
+                message.warning(`部分完成：成功 ${successCount} 张，失败 ${failCount} 张`);
+            } else {
+                message.error('删除失败，请检查后端日志');
+            }
+
+            // 4. 清空选中状态
+            setSelectedIds([]);
+            setContextMenu(null);
+
+        } catch (error) {
+            console.error(error);
+            message.error('请求发生异常');
+        } finally {
+            // 5. 【核心修复】无论成功失败，都在 finally 里刷新列表
+            // 这样那些删除成功的图片就会从界面上消失
+            hideLoading();
+            fetchImages(currentTag);
+            fetchTags();
         }
     };
 
@@ -553,7 +597,13 @@ const Home = () => {
                         }}>
                             <i className="ri-price-tag-3-line"></i> 添加标签 ({selectedIds.length})
                         </div>
-                        <div className="context-menu-item" style={{ color: '#ff4d4f' }}>
+                        <div className="context-menu-item"
+                            style={{ color: '#ff4d4f' }}
+                            // 【修改】绑定删除事件
+                            onClick={() => {
+                                handleDelete();
+                                // setContextMenu(null); // handleDelete 里已经关了，这里可以不写
+                            }}>
                             <i className="ri-delete-bin-line"></i> 删除图片
                         </div>
                     </div>

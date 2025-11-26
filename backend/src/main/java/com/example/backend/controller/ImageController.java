@@ -96,4 +96,27 @@ public class ImageController {
         }
         return result;
     }
+
+    /**
+     * 删除图片
+     * DELETE /api/image/{id}
+     */
+    @DeleteMapping("/{id}")
+    public Map<String, Object> delete(@PathVariable Long id) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = (Long) authentication.getPrincipal();
+
+            imageService.deleteImage(id, userId);
+
+            result.put("code", 200);
+            result.put("msg", "删除成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("code", 500);
+            result.put("msg", "删除失败: " + e.getMessage());
+        }
+        return result;
+    }
 }
