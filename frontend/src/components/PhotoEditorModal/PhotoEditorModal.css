@@ -255,3 +255,22 @@
     background: #444;
     color: white;
 }
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    border-bottom: 1px dashed #333;
+    padding-bottom: 5px;
+}
+
+.info-row label {
+    color: #888;
+}
+
+.info-row span {
+    color: #e0e0e0;
+    text-align: right;
+    max-width: 180px;
+}

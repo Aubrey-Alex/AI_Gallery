@@ -688,7 +688,9 @@ const Home = () => {
                     isOpen={isEditorOpen}
                     onClose={() => setIsEditorOpen(false)}
                     // 传入大图路径 (filePath)
-                    imageSrc={editingImage ? `http://localhost:8080${editingImage.filePath}` : ''}
+                    // imageSrc={editingImage ? `http://localhost:8080${editingImage.filePath}` : ''}
+                    // 【修改】不再传 imageSrc 字符串，而是传整个 image 对象
+                    imageObj={editingImage}
                     onSave={handleSaveEditedImage}
                 />
 

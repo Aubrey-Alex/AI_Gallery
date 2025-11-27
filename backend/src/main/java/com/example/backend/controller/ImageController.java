@@ -27,6 +27,9 @@ public class ImageController {
     @Autowired
     private TagService tagService; // 【新增】注入 TagService
 
+    @Autowired
+    private com.example.backend.mapper.ImageMetadataMapper metadataMapper; // 【新增注入】
+
     // 定义一个内部类用于接收 JSON 参数
     static class SaveEditorRequest {
         public String base64;
@@ -87,6 +90,9 @@ public class ImageController {
 
                 // 查标签并填充
                 vo.setTags(tagService.getTagsByImageId(img.getId()));
+                // 2. 【新增】填充元数据
+                // MyBatis-Plus 的 selectById 可以直接查主键
+                vo.setMetadata(metadataMapper.selectById(img.getId()));
                 return vo;
             }).collect(Collectors.toList());
 

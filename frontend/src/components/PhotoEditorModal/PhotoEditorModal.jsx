@@ -5,7 +5,12 @@ import { message } from 'antd';
 import Cropper from 'react-cropper';
 // import 'cropperjs/dist/cropper.css';
 
-const PhotoEditorModal = ({ isOpen, onClose, imageSrc, onSave }) => {
+const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
+    // 从 imageObj 中提取 src
+    const imageSrc = imageObj ? `http://localhost:8080${imageObj.filePath}` : '';
+    // 提取 metadata (防止为空)
+    const meta = imageObj?.metadata || {};
+
     console.log('ImageSrc:', imageSrc);
     const [activeGroup, setActiveGroup] = useState('light');
     const cropperRef = useRef(null); // 引用 Cropper 实例
@@ -262,6 +267,38 @@ const PhotoEditorModal = ({ isOpen, onClose, imageSrc, onSave }) => {
 
                             <div style={{ marginTop: '10px', color: '#666', fontSize: '0.8rem' }}>
                                 * 旋转时系统会自动放大图片以填满画布
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* --- 【新增】Group 5: 元数据展示 (只读) --- */}
+                    <div className="tool-group">
+                        <div className="group-header" onClick={() => setActiveGroup(activeGroup === 'info' ? '' : 'info')}>
+                            <span>元数据 (Info)</span>
+                            <i className="ri-arrow-down-s-line"></i>
+                        </div>
+                        <div className={`group-content ${activeGroup === 'info' ? 'show' : ''}`}>
+                            <div className="info-row">
+                                <label>相机:</label>
+                                <span>{meta.cameraModel || '未知设备'}</span>
+                            </div>
+                            <div className="info-row">
+                                <label>尺寸:</label>
+                                <span>{meta.width ? `${meta.width} x ${meta.height}` : '未知'}</span>
+                            </div>
+                            <div className="info-row">
+                                <label>时间:</label>
+                                {/* 简单的格式化时间 */}
+                                <span>{meta.shootTime ? new Date(meta.shootTime).toLocaleString() : '未知'}</span>
+                            </div>
+                            <div className="info-row">
+                                <label>地点:</label>
+                                <span>{meta.locationName || '未记录'}</span>
+                            </div>
+                            <div className="info-row">
+                                <label>文件:</label>
+                                {/* 从 filePath 截取文件名 */}
+                                <span style={{ wordBreak: 'break-all' }}>{imageObj?.fileName || 'unknown.jpg'}</span>
                             </div>
                         </div>
                     </div>
