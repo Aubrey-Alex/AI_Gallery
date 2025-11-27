@@ -1,0 +1,276 @@
+/* src/components/PhotoEditorModal/PhotoEditorModal.css */
+
+/* 全屏遮罩 */
+.editor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.editor-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 关闭按钮 */
+.editor-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+    z-index: 2001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editor-close-btn:hover {
+    background: #FF5722;
+    transform: rotate(90deg);
+}
+
+/* 主容器 */
+.editor-container {
+    display: flex;
+    width: 95%;
+    max-width: 1400px;
+    height: 90vh;
+    background: #111;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+}
+
+/* 左侧：图片预览区 */
+.preview-area {
+    flex: 2;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    /* 裁剪超出的旋转部分 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 网格背景，方便看透明度或裁剪 */
+    background-image: radial-gradient(#222 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.preview-img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    transition: filter 0.1s ease-out;
+    /* 快速响应滤镜变化 */
+    will-change: transform, filter;
+    transform-origin: center center;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+/* 右侧：工具面板 */
+.tools-panel {
+    flex: 1;
+    min-width: 350px;
+    max-width: 400px;
+    background: #0A0A0A;
+    border-left: 1px solid #1F1F1F;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.panel-header {
+    padding: 20px;
+    border-bottom: 1px solid #1F1F1F;
+    background: #0A0A0A;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.panel-header h2 {
+    font-size: 1.2rem;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 折叠菜单组 */
+.tool-group {
+    border-bottom: 1px solid #1F1F1F;
+}
+
+.group-header {
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #e0e0e0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.group-header:hover {
+    background: #141414;
+}
+
+.group-header i {
+    color: #666;
+    transition: transform 0.3s;
+}
+
+.group-header.open i {
+    transform: rotate(180deg);
+    color: #FF5722;
+}
+
+.group-content {
+    padding: 0 20px 20px 20px;
+    display: none;
+    animation: slideDown 0.3s ease;
+}
+
+.group-content.show {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 滑块控件 */
+.slider-control {
+    margin-bottom: 15px;
+}
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    color: #888;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+}
+
+.slider-val {
+    color: #FF5722;
+    font-family: monospace;
+}
+
+.custom-range {
+    width: 100%;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+}
+
+.custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #e0e0e0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.custom-range::-webkit-slider-thumb:hover {
+    background: #FF5722;
+    transform: scale(1.2);
+}
+
+/* 底部按钮区 */
+.panel-footer {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid #1F1F1F;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #FF5722;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #F4511E;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #333;
+    color: #ccc;
+}
+
+.btn-secondary:hover {
+    background: #444;
+    color: white;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    border-bottom: 1px dashed #333;
+    padding-bottom: 5px;
+}
+
+.info-row label {
+    color: #888;
+}
+
+.info-row span {
+    color: #e0e0e0;
+    text-align: right;
+    max-width: 180px;
+}

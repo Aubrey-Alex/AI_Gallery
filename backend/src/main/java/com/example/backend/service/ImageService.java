@@ -24,6 +24,9 @@ import com.example.backend.mapper.ImageTagRelationMapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.Base64;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -229,5 +232,63 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         // MyBatis-Plus 的级联删除机制通常依赖数据库的外键设置 (ON DELETE CASCADE)
         // 如果数据库设置了级联，删 image_info 就会自动删 metadata 和 tag_relation
         this.removeById(imageId);
+    }
+
+    /**
+     * 保存编辑后的图片（作为新图片存储）
+     * @param userId 当前用户ID
+     * @param base64Data 前端传来的 Base64 字符串 (data:image/jpeg;base64,....)
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ImageInfo saveEditedImage(Long userId, String base64Data) throws IOException {
+        // 1. 准备路径
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        // 2. 解析 Base64 数据
+        // 前端传来的通常是 "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        // 我们需要去掉逗号之前的前缀
+        String[] parts = base64Data.split(",");
+        String imageString = parts.length > 1 ? parts[1] : parts[0];
+        byte[] imageBytes = Base64.getDecoder().decode(imageString);
+
+        // 3. 生成新文件名 (统一保存为 jpg)
+        String uuid = UUID.randomUUID().toString();
+        String newFileName = uuid + ".jpg";
+        String thumbnailName = uuid + "_thumb.jpg";
+
+        // 4. 保存原图 (编辑后的大图)
+        Path targetLocation = uploadPath.resolve(newFileName);
+        try (OutputStream os = new FileOutputStream(targetLocation.toFile())) {
+            os.write(imageBytes);
+        }
+
+        // 5. 生成缩略图
+        Path thumbLocation = uploadPath.resolve(thumbnailName);
+        try {
+            Thumbnails.of(targetLocation.toFile())
+                    .size(300, 300)
+                    .outputQuality(0.8)
+                    .toFile(thumbLocation.toFile());
+        } catch (Exception e) {
+            // 兜底：如果压缩失败，直接复制
+            Files.copy(targetLocation, thumbLocation);
+        }
+
+        // 6. 保存到数据库 (ImageInfo)
+        ImageInfo imageInfo = new ImageInfo();
+        imageInfo.setUserId(userId);
+        imageInfo.setFilePath("/uploads/" + newFileName);
+        imageInfo.setThumbnailPath("/uploads/" + thumbnailName);
+        imageInfo.setUploadTime(LocalDateTime.now());
+
+        this.save(imageInfo);
+
+        // 7. (可选) 如果您想复制原图的 EXIF 信息，可以在这里做
+        // 但通常编辑后的图片 EXIF 会丢失或改变，这里作为新图处理，暂不复制 Metadata
+
+        return imageInfo;
     }
 }

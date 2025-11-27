@@ -27,6 +27,14 @@ public class ImageController {
     @Autowired
     private TagService tagService; // 【新增】注入 TagService
 
+    @Autowired
+    private com.example.backend.mapper.ImageMetadataMapper metadataMapper; // 【新增注入】
+
+    // 定义一个内部类用于接收 JSON 参数
+    static class SaveEditorRequest {
+        public String base64;
+    }
+
     /**
      * 图片上传接口
      */
@@ -82,6 +90,9 @@ public class ImageController {
 
                 // 查标签并填充
                 vo.setTags(tagService.getTagsByImageId(img.getId()));
+                // 2. 【新增】填充元数据
+                // MyBatis-Plus 的 selectById 可以直接查主键
+                vo.setMetadata(metadataMapper.selectById(img.getId()));
                 return vo;
             }).collect(Collectors.toList());
 
@@ -116,6 +127,32 @@ public class ImageController {
             e.printStackTrace();
             result.put("code", 500);
             result.put("msg", "删除失败: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 保存编辑后的图片
+     * POST /api/image/save-edited
+     */
+    @PostMapping("/save-edited")
+    public Map<String, Object> saveEdited(@RequestBody SaveEditorRequest request) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = (Long) authentication.getPrincipal();
+
+            // 调用 Service 保存
+            ImageInfo newImage = imageService.saveEditedImage(userId, request.base64);
+
+            result.put("code", 200);
+            result.put("msg", "保存成功");
+            result.put("data", newImage);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("code", 500);
+            result.put("msg", "保存失败: " + e.getMessage());
         }
         return result;
     }
