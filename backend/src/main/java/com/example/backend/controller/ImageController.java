@@ -64,7 +64,7 @@ public class ImageController {
      * URL: GET /api/image/list
      */
     @GetMapping("/list")
-    public Map<String, Object> list(@RequestParam(required = false) String tag) {
+    public Map<String, Object> list(@RequestParam(required = false) String keyword) {
         Map<String, Object> result = new HashMap<>();
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -76,7 +76,7 @@ public class ImageController {
 //
 //            List<ImageInfo> list = imageService.list(queryWrapper);
             // 这里的逻辑是：如果 tag 有值，Service 内部会去查关联表；如果没值，它会自动查全部。
-            List<ImageInfo> list = imageService.listImagesByTag(userId, tag);
+            List<ImageInfo> list = imageService.searchImages(userId, keyword);
 
             // 【核心修改】将 ImageInfo 转换为 ImageVO 并填充标签
             List<ImageVO> voList = list.stream().map(img -> {

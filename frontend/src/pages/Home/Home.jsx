@@ -25,6 +25,19 @@ const Home = () => {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingImage, setEditingImage] = useState(null);
 
+    const searchInputRef = useRef(null);
+
+    // 搜索执行函数
+    const handleSearch = () => {
+        const keyword = searchInputRef.current.value.trim();
+        if (keyword) {
+            fetchImages(keyword);
+        } else {
+            // 如果清空了搜索框并回车，就查全部
+            fetchImages(null);
+        }
+    };
+
     // 3. 【新增】打开编辑器的辅助函数
     const handleOpenEditor = (img) => {
         setEditingImage(img);
@@ -71,24 +84,26 @@ const Home = () => {
     const [images, setImages] = useState([]);
 
     // 【修改】fetchImages 支持参数
-    const fetchImages = async (tag = null) => {
+    const fetchImages = async (query = null) => {
         try {
-            // 如果有 tag，拼接到 URL 后面；没有则查全部
-            const url = tag ? `/api/image/list?tag=${encodeURIComponent(tag)}` : '/api/image/list';
+            // query 可能是 tag (侧边栏) 也可能是 keyword (搜索框)
+            // 这里我们统称为 query
+            const url = query
+                ? `/api/image/list?keyword=${encodeURIComponent(query)}` // 后端接口已经改成 keyword 了
+                : '/api/image/list';
 
             const res = await axios.get(url);
             if (res.data.code === 200) {
                 setImages(res.data.data);
 
-                // 【核心逻辑】
-                if (tag) {
-                    // 如果是按标签筛选，自动切到瀑布流模式
-                    setViewMode('timeline');
-                    setTimelineTitle(tag); // 设置标题，如 "Scenery"
+                // 【核心优化】搜索后的视图跳转逻辑
+                if (query) {
+                    setViewMode('timeline'); // 自动切到瀑布流
+                    setTimelineTitle(`"${query}"`); // 更新标题
+                    setCurrentTag(null); // 清除侧边栏的选中状态，避免混淆
                 } else {
-                    // 如果查全部，切回默认网格模式 (或者保持当前模式，看你喜好)
-                    // 这里假设点 "All Photos" 回到网格
-                    setViewMode('grid');
+                    setViewMode('grid'); // 查全部时回到网格
+                    setCurrentTag(null);
                 }
             }
         } catch (error) {
@@ -455,8 +470,23 @@ const Home = () => {
             <main className="main-content">
                 <header className="top-bar">
                     <div className="search-container">
-                        <input type="text" className="search-input" placeholder="Ask AI: 'Show me seaside photos...'" />
-                        <i className="ri-sparkling-2-line search-icon"></i>
+                        <input
+                            ref={searchInputRef} // 绑定 Ref
+                            type="text"
+                            className="search-input"
+                            placeholder="搜索图片或标签..."
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch(); // 回车触发
+                                }
+                            }}
+                        />
+                        {/* 图标绑定点击事件 */}
+                        <i
+                            className="ri-sparkling-2-line search-icon"
+                            style={{ cursor: 'pointer' }}
+                            onClick={handleSearch}
+                        ></i>
                     </div>
                     <div className="top-actions">
                         {/* ... 视图切换按钮保持不变 ... */}

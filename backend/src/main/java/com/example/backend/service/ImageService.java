@@ -160,42 +160,46 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         }
     }
 
-    // 【新增】支持按标签筛选的查询方法
-    public List<ImageInfo> listImagesByTag(Long userId, String tagName) {
-        // 1. 如果没有传 tag，直接查该用户所有图
-        if (tagName == null || tagName.trim().isEmpty()) {
+    // 升级原有的查询方法，支持 keyword 模糊搜索
+    public List<ImageInfo> searchImages(Long userId, String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            // 没有关键词，查全部
             QueryWrapper<ImageInfo> query = new QueryWrapper<>();
             query.eq("user_id", userId);
             query.orderByDesc("upload_time");
             return this.list(query);
         }
 
-        // 2. 如果传了 tag，先查 tagId
+        // 1. 先尝试把 keyword 当作标签名查 tagId
         QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
-        tagQuery.eq("tag_name", tagName);
-        ImageTag tag = tagMapper.selectOne(tagQuery);
+        tagQuery.like("tag_name", keyword); // 模糊匹配标签
+        List<ImageTag> tags = tagMapper.selectList(tagQuery);
 
-        if (tag == null) {
-            return new ArrayList<>(); // 没这个标签，自然没图
+        List<Long> tagImageIds = new ArrayList<>();
+        if (!tags.isEmpty()) {
+            List<Long> tagIds = tags.stream().map(ImageTag::getId).toList();
+            QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
+            relQuery.in("tag_id", tagIds);
+            List<ImageTagRelation> relations = relationMapper.selectList(relQuery);
+            tagImageIds = relations.stream().map(ImageTagRelation::getImageId).toList();
         }
 
-        // 3. 查关联表，找到拥有该 tagId 的所有 imageId
-        QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
-        relQuery.eq("tag_id", tag.getId());
-        List<ImageTagRelation> relations = relationMapper.selectList(relQuery);
-
-        if (relations.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<Long> imageIds = relations.stream().map(ImageTagRelation::getImageId).toList();
-
-        // 4. 最后查 image_info 表
+        // 2. 查 image_info 表
         QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
-        imgQuery.in("id", imageIds);
         imgQuery.eq("user_id", userId);
-        imgQuery.orderByDesc("upload_time");
 
+        // 逻辑：(文件名包含 keyword) OR (ID 在标签关联列表里)
+        // 这里的写法要注意 and(...) 里的 or
+        List<Long> finalTagImageIds = tagImageIds; // lambda 需要 final
+
+        imgQuery.and(wrapper -> {
+//            wrapper.like("file_name", keyword); // 假设我们之前加了 fileName 字段，如果没有就只搜标签
+            if (!finalTagImageIds.isEmpty()) {
+                wrapper.or().in("id", finalTagImageIds);
+            }
+        });
+
+        imgQuery.orderByDesc("upload_time");
         return this.list(imgQuery);
     }
 
