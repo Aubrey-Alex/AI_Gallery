@@ -30,22 +30,31 @@ public class TagService {
     private ImageInfoMapper imageInfoMapper;
 
     /**
-     * 核心功能：给多张图片添加多个自定义标签
-     * @param imageIds 图片ID列表
-     * @param tagNames 标签名称列表 (例如 ["旅游", "杭州"])
+     * 重载方法：给 Controller 使用，默认类型为 1 (人工)
      */
     @Transactional(rollbackFor = Exception.class)
     public void addTags(List<Long> imageIds, List<String> tagNames) {
+        addTags(imageIds, tagNames, 1);
+    }
+
+    /**
+     * 核心功能：给多张图片添加多个自定义标签 (支持指定类型)
+     * @param imageIds 图片ID列表
+     * @param tagNames 标签名称列表
+     * @param type 标签类型 (1:人工, 2:AI, 3:EXIF)
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void addTags(List<Long> imageIds, List<String> tagNames, int type) {
         if (imageIds == null || imageIds.isEmpty() || tagNames == null || tagNames.isEmpty()) {
             return;
         }
 
         for (String rawName : tagNames) {
-            // 【修复】去空格，确保 " 杭州 " 变成 "杭州"
+            // 去空格
             if (rawName == null || rawName.trim().isEmpty()) continue;
             String name = rawName.trim();
-            // 1. 检查标签是否已存在于字典表
-            // 注意：这里我们处理的是“自定义标签”，所以默认 type=1
+
+            // 1. 检查标签是否已存在
             QueryWrapper<ImageTag> query = new QueryWrapper<>();
             query.eq("tag_name", name);
             ImageTag existingTag = tagMapper.selectOne(query);
@@ -55,17 +64,16 @@ public class TagService {
                 // 2. 如果不存在，创建新标签
                 ImageTag newTag = new ImageTag();
                 newTag.setTagName(name);
-                newTag.setTagType(1); // 1 代表人工标签
+                newTag.setTagType(type); // 【核心修改】使用传入的 type
                 tagMapper.insert(newTag);
-                tagId = newTag.getId(); // 获取新生成的 ID
+                tagId = newTag.getId();
             } else {
-                // 3. 如果存在，直接复用 ID
+                // 3. 如果存在，复用 ID
                 tagId = existingTag.getId();
             }
 
-            // 4. 遍历每一张图片，建立关联
+            // 4. 建立关联
             for (Long imgId : imageIds) {
-                // 先检查是否已经打过这个标签了，防止重复
                 QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
                 relQuery.eq("image_id", imgId).eq("tag_id", tagId);
 
@@ -79,58 +87,55 @@ public class TagService {
         }
     }
 
-    // 【新增】根据图片ID查询所有标签名
-    public List<String> getTagsByImageId(Long imageId) {
-        // 这通常需要联表查询，为了简单，我们用 MyBatis-Plus 的逻辑拼装
-        // 1. 先查关系表拿到 tagIds
+    // 获取单张图片的所有标签 (返回完整对象，包含 type)
+    public List<ImageTag> getTagsByImageId(Long imageId) {
         QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
         relQuery.eq("image_id", imageId);
         List<ImageTagRelation> relations = relationMapper.selectList(relQuery);
 
         if (relations.isEmpty()) {
-            return List.of(); // 返回空列表
+            return new ArrayList<>();
         }
 
         List<Long> tagIds = relations.stream().map(ImageTagRelation::getTagId).toList();
-
-        // 2. 再查标签表拿到 Names
-        List<ImageTag> tags = tagMapper.selectBatchIds(tagIds);
-        return tags.stream().map(ImageTag::getTagName).toList();
+        return tagMapper.selectBatchIds(tagIds);
     }
 
-    // 【新增】统计当前用户的标签使用情况
+    // 统计用户标签
     public List<TagVO> getUserTagStats(Long userId) {
-        // 1. 查出该用户所有的图片 ID
+        // 1. 查图片
         QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
         imgQuery.eq("user_id", userId);
-        imgQuery.select("id"); // 只查 ID 优化性能
+        imgQuery.select("id");
         List<ImageInfo> userImages = imageInfoMapper.selectList(imgQuery);
 
         if (userImages.isEmpty()) return new ArrayList<>();
 
         List<Long> imageIds = userImages.stream().map(ImageInfo::getId).toList();
 
-        // 2. 查出这些图片关联的所有标签 ID
+        // 2. 查关联
         QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
         relQuery.in("image_id", imageIds);
         List<ImageTagRelation> relations = relationMapper.selectList(relQuery);
 
         if (relations.isEmpty()) return new ArrayList<>();
 
-        // 3. 统计每个 TagID 出现的次数 (Key: TagId, Value: Count)
+        // 3. 统计次数
         Map<Long, Integer> countMap = new HashMap<>();
         for (ImageTagRelation rel : relations) {
             countMap.put(rel.getTagId(), countMap.getOrDefault(rel.getTagId(), 0) + 1);
         }
 
-        // 4. 查出 Tag 的具体名字，并封装成 VO
+        // 4. 封装 VO
         List<ImageTag> tags = tagMapper.selectBatchIds(countMap.keySet());
-
         List<TagVO> result = new ArrayList<>();
+
         for (ImageTag tag : tags) {
             Integer count = countMap.get(tag.getId());
-            // 这里我们可以过滤一下，只显示用户自定义标签 (Type=1) 放在"我的标签"里
-            // 如果你想显示所有，就去掉这个 if
+            // 【修改】这里不再过滤 type==1，而是把所有标签都返回
+            // 可以在 TagVO 里加一个 type 字段传给前端，让前端决定侧边栏显示什么
+            // 假设 TagVO 还没有 type 字段，我们暂时先只返回人工标签以保持侧边栏干净
+            // 如果你想在侧边栏也显示 EXIF 标签，就把下面这个 if 去掉
             if (tag.getTagType() == 1) {
                 result.add(new TagVO(tag.getTagName(), count));
             }

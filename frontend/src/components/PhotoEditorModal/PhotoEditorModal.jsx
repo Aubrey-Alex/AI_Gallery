@@ -271,6 +271,45 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                         </div>
                     </div>
 
+                    {/* --- 【新增】Group: 标签管理 --- */}
+                    <div className="tool-group">
+                        <div className="group-header" onClick={() => setActiveGroup(activeGroup === 'tags' ? '' : 'tags')}>
+                            <span>标签 (Tags)</span>
+                            <i className="ri-arrow-down-s-line"></i>
+                        </div>
+                        <div className={`group-content ${activeGroup === 'tags' ? 'show' : ''}`}>
+
+                            {/* 分类展示标签 */}
+                            <div className="tag-section">
+                                <div className="tag-section-title">人工标注 (Manual)</div>
+                                <div className="tag-chips">
+                                    {imageObj?.tags?.filter(t => t.tagType === 1).map((t, i) => (
+                                        <span key={i} className="tag-chip user-tag">#{t.tagName}</span>
+                                    )) || <span className="empty-text">无</span>}
+                                </div>
+                            </div>
+
+                            <div className="tag-section">
+                                <div className="tag-section-title">信息提取 (Info)</div>
+                                <div className="tag-chips">
+                                    {imageObj?.tags?.filter(t => t.tagType === 3).map((t, i) => (
+                                        <span key={i} className="tag-chip info-tag">#{t.tagName}</span>
+                                    )) || <span className="empty-text">无</span>}
+                                </div>
+                            </div>
+
+                            <div className="tag-section">
+                                <div className="tag-section-title">AI 识别 (AI)</div>
+                                <div className="tag-chips">
+                                    {imageObj?.tags?.filter(t => t.tagType === 2).map((t, i) => (
+                                        <span key={i} className="tag-chip ai-tag-style">#{t.tagName}</span>
+                                    )) || <span className="empty-text">未分析</span>}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
                     {/* --- 【新增】Group 5: 元数据展示 (只读) --- */}
                     <div className="tool-group">
                         <div className="group-header" onClick={() => setActiveGroup(activeGroup === 'info' ? '' : 'info')}>

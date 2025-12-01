@@ -570,13 +570,31 @@ const Home = () => {
                                         />
                                         <div className="card-overlay">
                                             <div className="card-info">
-                                                <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
+                                                {/* 【修改】优先显示文件名，没有文件名才显示日期 */}
+                                                <h4>{img.fileName || new Date(img.uploadTime).toLocaleDateString()}</h4>
+
+                                                {/* 【新增】如果显示了文件名，可以在下面用小字显示日期 */}
+                                                {img.fileName && (
+                                                    <p style={{ fontSize: '0.8rem', color: '#aaa', margin: 0 }}>
+                                                        {new Date(img.uploadTime).toLocaleDateString()}
+                                                    </p>
+                                                )}
 
                                                 {/* 【修改】渲染真实标签 */}
                                                 <div className="tags-row">
                                                     {img.tags && img.tags.length > 0 ? (
-                                                        img.tags.slice(0, 3).map((tag, i) => ( // 最多显示3个，防止换行
-                                                            <span className="ai-tag" key={i}>#{tag}</span>
+                                                        img.tags.slice(0, 3).map((tagObj, i) => (
+                                                            <span
+                                                                className="ai-tag"
+                                                                key={i}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setCurrentTag(tagObj.tagName); // 【修改】取 .tagName
+                                                                }}
+                                                                style={{ cursor: 'pointer' }}
+                                                            >
+                                                                #{tagObj.tagName} {/* 【修改】取 .tagName */}
+                                                            </span>
                                                         ))
                                                     ) : (
                                                         <span className="ai-tag" style={{ opacity: 0.5 }}>#无标签</span>
