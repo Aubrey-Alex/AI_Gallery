@@ -59,6 +59,9 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
     @Autowired
     private TagService tagService; // 【核心修复 1】注入 TagService
 
+    @Autowired
+    private AIService aiService; // 【新增注入】
+
     @Transactional(rollbackFor = Exception.class)
     public ImageInfo uploadImage(MultipartFile file, Long userId) throws IOException {
         // 1. 准备路径
@@ -115,28 +118,46 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
 
         this.save(imageInfo);
 
-        // 7. 保存 Metadata 并自动打标
+        // 7. 保存 Metadata 并自动打标 (整合 EXIF 和 AI)
         if (metaInfo != null) {
             metaInfo.setImageId(imageInfo.getId());
             metadataMapper.insert(metaInfo);
 
-            // 【核心修复 2】定义并填充 autoTags
-            List<String> autoTags = new ArrayList<>();
+            // === 自动打标逻辑 (整合版) ===
+            List<String> autoTags = new ArrayList<>(); // 只定义一次！
 
-            // 提取相机品牌作为标签 (如 Canon)
+            // A. EXIF 标签 (Type 3)
             if (metaInfo.getCameraModel() != null) {
-                String brand = metaInfo.getCameraModel().split(" ")[0];
-                autoTags.add(brand);
+                autoTags.add(metaInfo.getCameraModel().split(" ")[0]);
             }
-            // 提取年份作为标签 (如 2025)
             if (metaInfo.getShootTime() != null) {
                 autoTags.add(String.valueOf(metaInfo.getShootTime().getYear()));
             }
-
-            // 调用 TagService (Type 3 = Info/EXIF)
+            // 立即保存 EXIF 标签
             if (!autoTags.isEmpty()) {
                 tagService.addTags(List.of(imageInfo.getId()), autoTags, 3);
             }
+        }
+        // B. AI 智能分析 (Type 2)
+        // 注意：这里我们用 try-catch 包裹 AI 调用，防止 AI 报错影响图片上传主流程
+        try {
+            // 1. 检查文件格式，如果是 AVIF/WebP 等不支持的格式，直接跳过 AI 识别
+            if (extension.toLowerCase().contains("avif") || extension.toLowerCase().contains("webp")) {
+                System.out.println("跳过 AI 识别：格式不支持 (" + extension + ")");
+            } else {
+                // 2. 只有支持的格式才调用百度 AI
+                String absolutePath = thumbLocation.toString();
+                System.out.println("开始调用百度AI，图片路径: " + absolutePath);
+
+                List<String> aiTags = aiService.detectImageTags(absolutePath);
+
+                if (!aiTags.isEmpty()) {
+                    System.out.println("AI 识别成功，标签: " + aiTags);
+                    tagService.addTags(List.of(imageInfo.getId()), aiTags, 2);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("AI 识别跳过: " + e.getMessage());
         }
 
         return imageInfo;
