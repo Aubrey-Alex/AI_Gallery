@@ -391,7 +391,8 @@
 }
 
 /* --- 多选与选中样式 --- */
-.card-item.is-selected {
+.card-item.is-selected,
+.masonry-item.is-selected {
     border: 3px solid #FF5722;
     /* 选中时显示橙色边框 */
     transform: scale(0.95);
