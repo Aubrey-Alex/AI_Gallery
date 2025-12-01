@@ -308,7 +308,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                             <i className="ri-refresh-line"></i> 重置
                         </button>
                         <button className="btn btn-primary" onClick={handleSaveProcess}>
-                            <i className="ri-save-3-line"></i> 保存并覆盖
+                            <i className="ri-save-3-line"></i> 保存
                         </button>
                     </div>
                 </div>

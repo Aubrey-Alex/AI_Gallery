@@ -23,6 +23,8 @@ import com.example.backend.mapper.ImageTagMapper;
 import com.example.backend.mapper.ImageTagRelationMapper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import java.util.Base64;
 import java.io.FileOutputStream;
@@ -160,22 +162,21 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         }
     }
 
-    // 升级原有的查询方法，支持 keyword 模糊搜索
+    // 【升级版】全能搜索：同时搜索标签和元数据
     public List<ImageInfo> searchImages(Long userId, String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            // 没有关键词，查全部
             QueryWrapper<ImageInfo> query = new QueryWrapper<>();
             query.eq("user_id", userId);
             query.orderByDesc("upload_time");
             return this.list(query);
         }
 
-        // 1. 先尝试把 keyword 当作标签名查 tagId
+        // --- 1. 搜索标签 (获取 ImageIDs) ---
+        List<Long> tagImageIds = new ArrayList<>();
         QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
-        tagQuery.like("tag_name", keyword); // 模糊匹配标签
+        tagQuery.like("tag_name", keyword);
         List<ImageTag> tags = tagMapper.selectList(tagQuery);
 
-        List<Long> tagImageIds = new ArrayList<>();
         if (!tags.isEmpty()) {
             List<Long> tagIds = tags.stream().map(ImageTag::getId).toList();
             QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
@@ -184,22 +185,35 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             tagImageIds = relations.stream().map(ImageTagRelation::getImageId).toList();
         }
 
-        // 2. 查 image_info 表
+        // --- 2. 搜索元数据 (获取 ImageIDs) 【新增】 ---
+        // 搜索逻辑：相机型号包含 keyword 或者 地点包含 keyword
+        List<Long> metaImageIds = new ArrayList<>();
+        QueryWrapper<ImageMetadata> metaQuery = new QueryWrapper<>();
+        metaQuery.like("camera_model", keyword)
+                .or()
+                .like("location_name", keyword);
+
+        List<ImageMetadata> metadatas = metadataMapper.selectList(metaQuery);
+        if (!metadatas.isEmpty()) {
+            metaImageIds = metadatas.stream().map(ImageMetadata::getImageId).toList();
+        }
+
+        // --- 3. 合并 ID 列表 (去重) ---
+        // 将标签搜到的 ID 和元数据搜到的 ID 合并
+        List<Long> allIds = Stream.concat(tagImageIds.stream(), metaImageIds.stream())
+                .distinct() // 去重
+                .collect(Collectors.toList());
+
+        // --- 4. 查主表 ---
+        if (allIds.isEmpty()) {
+            return new ArrayList<>(); // 啥也没搜到
+        }
+
         QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
-        imgQuery.eq("user_id", userId);
-
-        // 逻辑：(文件名包含 keyword) OR (ID 在标签关联列表里)
-        // 这里的写法要注意 and(...) 里的 or
-        List<Long> finalTagImageIds = tagImageIds; // lambda 需要 final
-
-        imgQuery.and(wrapper -> {
-//            wrapper.like("file_name", keyword); // 假设我们之前加了 fileName 字段，如果没有就只搜标签
-            if (!finalTagImageIds.isEmpty()) {
-                wrapper.or().in("id", finalTagImageIds);
-            }
-        });
-
+        imgQuery.in("id", allIds);
+        imgQuery.eq("user_id", userId); // 依然要限制只能看自己的
         imgQuery.orderByDesc("upload_time");
+
         return this.list(imgQuery);
     }
 
