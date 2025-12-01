@@ -635,21 +635,41 @@ const Home = () => {
                         </div>
 
                         <div className="masonry-grid">
-                            {images.map((img) => (
-                                <div className="masonry-item" key={img.id}>
-                                    <img
-                                        src={`http://localhost:8080${img.thumbnailPath}`}
-                                        className="masonry-img"
-                                        alt="timeline item"
-                                    />
-                                    <div className="card-overlay">
-                                        <div className="card-info">
-                                            <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
-                                            {/* 可以在这里也显示标签 */}
+                            {images.map((img) => {
+                                // 1. 判断是否选中 (为了保持多选功能一致)
+                                const isSelected = selectedIds.includes(img.id);
+
+                                return (
+                                    <div
+                                        // 2. 添加选中样式类
+                                        className={`masonry-item ${isSelected ? 'is-selected' : ''}`}
+                                        key={img.id}
+
+                                        // 3. 【核心修复】补齐三个交互事件
+                                        onClick={() => handleCardClick(img.id)}           // 左键多选
+                                        onDoubleClick={() => handleOpenEditor(img)}       // 双击编辑
+                                        onContextMenu={(e) => handleContextMenu(e, img.id)} // 右键菜单
+                                    >
+                                        {/* 4. 添加选中时的对勾图标 */}
+                                        {isSelected && (
+                                            <div className="check-icon">
+                                                <i className="ri-check-line"></i>
+                                            </div>
+                                        )}
+
+                                        <img
+                                            src={`http://localhost:8080${img.thumbnailPath}`}
+                                            className="masonry-img"
+                                            alt="timeline item"
+                                        />
+                                        <div className="card-overlay">
+                                            <div className="card-info">
+                                                <h4>{new Date(img.uploadTime).toLocaleDateString()}</h4>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {images.length === 0 && (
