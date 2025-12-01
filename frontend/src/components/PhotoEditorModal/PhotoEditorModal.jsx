@@ -4,6 +4,7 @@ import { message } from 'antd';
 // 引入 Cropper
 import Cropper from 'react-cropper';
 // import 'cropperjs/dist/cropper.css';
+import axios from '../../utils/request';
 
 const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
     // 从 imageObj 中提取 src
@@ -120,6 +121,56 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
         // 如果要做 SVG 锐化，需要极其复杂的像素处理，为了大程稳定性，这里只做 CSS 模拟
 
         return filters.join(' ');
+    };
+
+    const handleAIAnalyze = async () => {
+        if (!imageObj) return;
+        const hideLoading = message.loading('AI 正在分析图片...', 0);
+
+        try {
+            const res = await axios.post('/api/ai/analyze', { imageId: imageObj.id });
+
+            if (res.data.code === 200) {
+                message.success('分析完成！');
+
+                // ----------------------------------------------------
+                // 【修改这里】
+                // 1. 绝对不要调用 onSave()，因为它会触发父组件把"空图片"发给后端保存，导致报错
+                // onSave();  <-- 删除这行
+                // ----------------------------------------------------
+
+                // 2. 尝试在当前弹窗直接显示新标签（用户体验更好）
+                if (res.data.data && res.data.data.tags) {
+                    // 这是一个临时显示的方案，不用刷新页面也能看到结果
+                    // 注意：这里修改的是 props 的引用，虽然 React 不推荐但能立即生效
+                    if (!imageObj.tags) imageObj.tags = [];
+
+                    // 假设后端返回的是标签字符串数组 ['猫', '键盘']
+                    // 我们需要构造成前端需要的对象结构 { tagName: '猫', tagType: 2 }
+                    const newTags = res.data.data.tags.map(tagName => ({
+                        tagName: tagName,
+                        tagType: 2 // 假设 2 是 AI 标签
+                    }));
+
+                    // 合并进去（简单粗暴法，或者你可以更精细地去重）
+                    imageObj.tags = [...imageObj.tags, ...newTags];
+
+                    // 强制组件刷新一下界面
+                    setActiveGroup('');
+                    setTimeout(() => setActiveGroup('tags'), 10);
+                } else {
+                    message.info('标签已更新，关闭后重新打开可见');
+                }
+
+            } else {
+                message.error('分析未发现新标签');
+            }
+        } catch (error) {
+            console.error(error);
+            message.error('调用 AI 失败');
+        } finally {
+            hideLoading();
+        }
     };
 
     // --- 核心：保存逻辑 (合并裁剪 + 滤镜) ---
@@ -299,7 +350,25 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                             </div>
 
                             <div className="tag-section">
-                                <div className="tag-section-title">AI 识别 (AI)</div>
+                                <div className="tag-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>AI 识别 (AI)</span>
+
+                                    {/* 【新增】手动触发分析按钮 */}
+                                    <button
+                                        type="button"
+                                        style={{
+                                            background: 'transparent', border: '1px solid #333',
+                                            color: '#888', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem'
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // 防止折叠
+                                            handleAIAnalyze();
+                                        }}
+                                    >
+                                        <i className="ri-magic-line"></i> 分析
+                                    </button>
+                                </div>
+
                                 <div className="tag-chips">
                                     {imageObj?.tags?.filter(t => t.tagType === 2).map((t, i) => (
                                         <span key={i} className="tag-chip ai-tag-style">#{t.tagName}</span>
