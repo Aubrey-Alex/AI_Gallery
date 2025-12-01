@@ -12,59 +12,83 @@ import java.util.List;
 @Service
 public class AIService {
 
-    // 【请替换为你自己的 Key】
-    // 实际开发中建议放在 application.yml 里，这里为了简单直接写死
     public static final String APP_ID = "121117508";
     public static final String API_KEY = "wRdtMM5oyZA7ElnCXTd8WR6N";
     public static final String SECRET_KEY = "pPvK7TUIAyQ2rQza8Bgxin9lHfibDDfj";
 
+    // 定义两个阈值
+    private static final double STRICT_THRESHOLD = 0.4; // 严格阈值：用于常规筛选
+    private static final double MIN_SAFE_THRESHOLD = 0.1; // 熔断阈值：低于这个分数的绝对不要，太离谱了
+
     private final AipImageClassify client;
 
     public AIService() {
-        // 初始化客户端
         client = new AipImageClassify(APP_ID, API_KEY, SECRET_KEY);
-
-        // 可选：设置网络连接参数
         client.setConnectionTimeoutInMillis(2000);
         client.setSocketTimeoutInMillis(60000);
     }
 
     /**
-     * 调用百度 AI 识别图片内容
-     * @param localFilePath 图片在服务器上的本地绝对路径
-     * @return 识别出的标签列表 (例如 ["猫", "动物", "家宠"])
+     * 内部简单类，用于暂存 AI 返回的原始数据方便排序和筛选
      */
+    private static class TagCandidate {
+        String keyword;
+        double score;
+
+        public TagCandidate(String keyword, double score) {
+            this.keyword = keyword;
+            this.score = score;
+        }
+    }
+
+    // 替换 detectImageTags 方法
     public List<String> detectImageTags(String localFilePath) {
-        List<String> tags = new ArrayList<>();
+        List<String> finalTags = new ArrayList<>();
         try {
             JSONObject res = client.advancedGeneral(localFilePath, new HashMap<>());
 
-            // 【调试】打印百度返回的完整 JSON，看看里面到底有没有东西
-            System.out.println("百度AI 原始响应: " + res.toString(2));
+            // 【关键】打印日志，看看百度到底返给你什么了！
+            System.out.println("----- 百度AI 原始返回 -----");
+            if (res.has("result")) {
+                JSONArray list = res.getJSONArray("result");
+                for(int i=0; i<list.length(); i++){
+                    JSONObject item = list.getJSONObject(i);
+                    System.out.println(item.getString("keyword") + " : " + item.getDouble("score"));
+                }
+            }
+            System.out.println("-------------------------");
 
             if (res.has("result")) {
                 JSONArray resultArray = res.getJSONArray("result");
-                int limit = Math.min(resultArray.length(), 5); // 取前5个
+                List<JSONObject> candidates = new ArrayList<>();
+                int limit = Math.min(resultArray.length(), 5);
 
+                // 1. 提取前5个
                 for (int i = 0; i < limit; i++) {
-                    JSONObject item = resultArray.getJSONObject(i);
-                    String keyword = item.getString("keyword");
-                    double score = item.getDouble("score");
+                    candidates.add(resultArray.getJSONObject(i));
+                }
 
-                    // 【调试】打印每个候选词的得分
-                    System.out.println("候选标签: " + keyword + " (得分: " + score + ")");
-
-                    // 【修改】把阈值从 0.5 降到 0.1，只要沾边就留着
-                    if (score > 0.4) {
-                        tags.add(keyword);
+                // 2. 策略A：优先找高置信度 (> 0.4)
+                for (JSONObject item : candidates) {
+                    if (item.getDouble("score") > 0.4) {
+                        finalTags.add(item.getString("keyword"));
                     }
                 }
-            } else {
-                System.err.println("AI响应中没有 result 字段: " + res.toString());
+
+                // 3. 策略B (保底)：如果策略A一个都没找到，就强制取前2个 (只要 > 0.1)
+                if (finalTags.isEmpty() && !candidates.isEmpty()) {
+                    System.out.println("触发保底策略...");
+                    for (int i = 0; i < Math.min(candidates.size(), 2); i++) {
+                        JSONObject item = candidates.get(i);
+                        if (item.getDouble("score") > 0.1) {
+                            finalTags.add(item.getString("keyword"));
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // 打印完整堆栈
+            e.printStackTrace();
         }
-        return tags;
+        return finalTags;
     }
 }
