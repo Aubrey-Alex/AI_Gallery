@@ -296,25 +296,43 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
     }
 
     /**
-     * 图片搜索逻辑
+     * 综合搜索：同时搜索 标签、文件名、以及 EXIF 元数据 (地点、相机全名、具体时间)
      */
     public List<ImageInfo> searchImages(Long userId, String keyword, Boolean onlyFavorites) {
-        // 1. 标签搜索：先查出包含关键字的图片 ID
-        List<Long> tagImageIds = new ArrayList<>();
-        if (keyword != null && !keyword.trim().isEmpty()) {
+        // 存储所有命中的图片 ID
+        Set<Long> targetImageIds = new HashSet<>();
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+
+        if (hasKeyword) {
+            String cleanKeyword = keyword.trim();
+
+            // --- 1. 搜标签 (包含你存进去的 Sony, 2025 等) ---
             QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
-            tagQuery.like("tag_name", keyword);
+            tagQuery.like("tag_name", cleanKeyword);
             List<ImageTag> tags = tagMapper.selectList(tagQuery);
+
             if (!tags.isEmpty()) {
                 List<Long> tagIds = tags.stream().map(ImageTag::getId).toList();
                 QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
                 relQuery.in("tag_id", tagIds);
-                tagImageIds = relationMapper.selectList(relQuery)
+                List<Long> idsFromTags = relationMapper.selectList(relQuery)
                         .stream().map(ImageTagRelation::getImageId).toList();
+                targetImageIds.addAll(idsFromTags);
+            }
+
+            // --- 2. 搜 EXIF 元数据 (解决“山西”搜不到的问题) ---
+            QueryWrapper<ImageMetadata> metaQuery = new QueryWrapper<>();
+            metaQuery.like("location_name", cleanKeyword)  // 搜地点：山西、太原
+                    .or().like("camera_model", cleanKeyword); // 搜相机全名：ILCE-7M3
+
+            List<ImageMetadata> metas = metadataMapper.selectList(metaQuery);
+            if (!metas.isEmpty()) {
+                List<Long> idsFromMeta = metas.stream().map(ImageMetadata::getImageId).toList();
+                targetImageIds.addAll(idsFromMeta);
             }
         }
 
-        // 2. 构建主查询
+        // --- 3. 主表查询 ---
         QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
         imgQuery.eq("user_id", userId);
 
@@ -323,15 +341,18 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             imgQuery.eq("is_favorite", 1);
         }
 
-        // 综合查询
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            List<Long> finalIds = tagImageIds;
-            imgQuery.and(wrapper -> {
-                wrapper.like("file_path", keyword); // 搜路径(虽然文件名已隐藏，但搜一下也没坏处)
-                if (!finalIds.isEmpty()) {
-                    wrapper.or().in("id", finalIds); // 搜标签命中
-                }
-            });
+        // 关键词过滤
+        if (hasKeyword) {
+            if (targetImageIds.isEmpty()) {
+                // 如果标签和元数据都没命中，最后尝试搜一下文件路径(虽然意义不大)
+                imgQuery.like("file_path", keyword);
+            } else {
+                // 命中了 ID，则取并集：(ID 在列表里 OR 文件路径包含关键词)
+                imgQuery.and(wrapper ->
+                        wrapper.in("id", targetImageIds)
+                                .or().like("file_path", keyword)
+                );
+            }
         }
 
         imgQuery.orderByDesc("upload_time");
