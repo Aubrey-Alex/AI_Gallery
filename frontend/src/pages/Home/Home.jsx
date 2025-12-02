@@ -319,6 +319,8 @@ const Home = () => {
                     {viewMode === 'stream' && (
                         <StreamView
                             images={images}
+                            // 【新增】将选中的 ID 列表传进去
+                            selectedIds={selectedIds}
                             onDoubleClick={handleOpenEditor}
                         />
                     )}
