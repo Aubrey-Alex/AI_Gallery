@@ -7,6 +7,7 @@ public class ImageVO extends ImageInfo {
     private List<ImageTag> tags;
     private ImageMetadata metadata;
     private String fileName;
+    private Integer isFavorite;
 
     // Getters & Setters
     public List<ImageTag> getTags() { return tags; }

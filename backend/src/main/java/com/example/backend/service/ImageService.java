@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.example.backend.entity.ImageTag;
 import com.example.backend.entity.ImageTagRelation;
 import com.example.backend.mapper.ImageTagMapper;
@@ -209,44 +210,62 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         return info;
     }
 
-    // 搜索逻辑
-    public List<ImageInfo> searchImages(Long userId, String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            QueryWrapper<ImageInfo> query = new QueryWrapper<>();
-            query.eq("user_id", userId);
-            query.orderByDesc("upload_time");
-            return this.list(query);
-        }
-
-        // 1. 搜标签
+    // 【修改】searchImages 方法，增加 onlyFavorites 参数
+    public List<ImageInfo> searchImages(Long userId, String keyword, Boolean onlyFavorites) { // 改签名
+        // 1. 如果有关键字，先按原逻辑查出 ID 集合 (复制之前的逻辑)
         List<Long> tagImageIds = new ArrayList<>();
-        QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
-        tagQuery.like("tag_name", keyword);
-        List<ImageTag> tags = tagMapper.selectList(tagQuery);
-
-        if (!tags.isEmpty()) {
-            List<Long> tagIds = tags.stream().map(ImageTag::getId).toList();
-            QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
-            relQuery.in("tag_id", tagIds);
-            List<ImageTagRelation> relations = relationMapper.selectList(relQuery);
-            tagImageIds = relations.stream().map(ImageTagRelation::getImageId).toList();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            // ... (这里保留你原来的标签搜索逻辑：查 ImageTag -> ImageTagRelation -> tagImageIds) ...
+            QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
+            tagQuery.like("tag_name", keyword);
+            List<ImageTag> tags = tagMapper.selectList(tagQuery);
+            if (!tags.isEmpty()) {
+                List<Long> tagIds = tags.stream().map(ImageTag::getId).toList();
+                QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
+                relQuery.in("tag_id", tagIds);
+                tagImageIds = relationMapper.selectList(relQuery)
+                        .stream().map(ImageTagRelation::getImageId).toList();
+            }
         }
 
-        // 2. 查主表 (路径 OR 标签)
+        // 2. 构建主查询
         QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
         imgQuery.eq("user_id", userId);
 
-        List<Long> finalIds = tagImageIds;
+        // 【新增】如果只看收藏
+        if (Boolean.TRUE.equals(onlyFavorites)) {
+            imgQuery.eq("is_favorite", 1);
+        }
 
-        imgQuery.and(wrapper -> {
-            wrapper.like("file_path", keyword); // 搜文件名
-            if (!finalIds.isEmpty()) {
-                wrapper.or().in("id", finalIds); // 搜标签命中
-            }
-        });
+        // 处理关键字搜索 (如果有)
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            List<Long> finalIds = tagImageIds;
+            imgQuery.and(wrapper -> {
+                wrapper.like("file_path", keyword); // 搜文件名
+                if (!finalIds.isEmpty()) {
+                    wrapper.or().in("id", finalIds); // 搜标签命中
+                }
+            });
+        }
 
         imgQuery.orderByDesc("upload_time");
         return this.list(imgQuery);
+    }
+
+    // 【新增】切换收藏状态 (Toggle)
+    public void toggleFavorite(Long id, Long userId) {
+        // 1. 先查出来看看现在是啥状态
+        ImageInfo img = this.getById(id);
+        if (img == null) throw new RuntimeException("图片不存在");
+        if (!img.getUserId().equals(userId)) throw new RuntimeException("无权操作");
+
+        // 2. 取反 (如果是1变0，是0/null变1)
+        int newStatus = (img.getIsFavorite() != null && img.getIsFavorite() == 1) ? 0 : 1;
+
+        // 3. 更新
+        UpdateWrapper<ImageInfo> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", id).set("is_favorite", newStatus);
+        this.update(updateWrapper);
     }
 
     // ... (deleteImage 和 saveEditedImage 方法保持不变，直接复用您之前的代码) ...
