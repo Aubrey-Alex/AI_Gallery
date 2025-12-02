@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // 所有 OPTIONS 请求（CORS 预检请求）必须放行
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
                         // 【重要】除了 WebSecurityCustomizer 忽略的路径，所有其他请求都需要认证
                         .anyRequest().authenticated()

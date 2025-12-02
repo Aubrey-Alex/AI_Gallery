@@ -336,11 +336,11 @@
 
 @keyframes infiniteScrollRight {
     0% {
-        transform: translateY(-50%) translateX(-50%);
+        transform: translateY(-50%) translateX(0%) rotateY('30deg');
     }
 
     100% {
-        transform: translateY(-50%) translateX(0%);
+        transform: translateY(-50%) translateX(50%);
     }
 }
 
@@ -388,4 +388,133 @@
 
 ::-webkit-scrollbar {
     display: none;
+}
+
+/* --- 多选与选中样式 --- */
+.card-item.is-selected,
+.masonry-item.is-selected {
+    border: 3px solid #FF5722;
+    /* 选中时显示橙色边框 */
+    transform: scale(0.95);
+    /* 稍微缩小一点 */
+}
+
+.check-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #FF5722;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 自定义右键菜单 --- */
+.context-menu {
+    position: fixed;
+    background: #1F1F1F;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    padding: 5px 0;
+    min-width: 150px;
+}
+
+.context-menu-item {
+    padding: 10px 15px;
+    color: #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #FF5722;
+    color: white;
+}
+
+.tags-row {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+/* --- Timeline/Waterfall Mode --- */
+.timeline-view {
+    padding: 2rem;
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+}
+
+.timeline-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.timeline-header h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* 纯 CSS 实现瀑布流 (核心) */
+.masonry-grid {
+    column-count: 4;
+    /* 默认4列 */
+    column-gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .masonry-grid {
+        column-count: 3;
+    }
+}
+
+@media (max-width: 800px) {
+    .masonry-grid {
+        column-count: 2;
+    }
+}
+
+.masonry-item {
+    break-inside: avoid;
+    /* 防止图片被切断 */
+    margin-bottom: 1.5rem;
+    background: #1a1a1a;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #333;
+    transition: transform 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+
+.masonry-item:hover {
+    transform: translateY(-5px);
+    border-color: #FF5722;
+}
+
+.masonry-img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
 }
