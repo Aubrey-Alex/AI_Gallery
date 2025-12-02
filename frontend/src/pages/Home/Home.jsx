@@ -243,22 +243,16 @@ const Home = () => {
         }
     };
 
-    // --- 修改后的上传逻辑 ---
+    // --- 最终版：智能上传逻辑 (文件校验 + 中文文案 + 并发控制) ---
     const handleSmartUpload = async (files) => {
         if (!files || files.length === 0) return;
 
-        // 1. 定义校验规则
-        const MAX_SIZE = 50 * 1024 * 1024; // 限制 50MB (足够容纳单反原图)
+        // 1. 【文件校验】
+        const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 
-        // 2. 进行过滤
         const validFiles = Array.from(files).filter(file => {
-            // --- 校验 A: 格式检查 ---
-            // 策略1：优先判断浏览器识别的 MIME type 是否以 'image/' 开头
-            // 这能覆盖：jpg, png, gif, webp, avif, bmp, svg, ico, tiff 等
+            // 校验格式：MIME type 或 后缀名
             const isMimeTypeImage = file.type.startsWith('image/');
-
-            // 策略2：如果浏览器没识别出来(有些 raw/heic 格式 type 可能为空)，则校验后缀名作为兜底
-            // 尽可能列全所有主流图片格式
             const fileName = file.name.toLowerCase();
             const isExtensionImage = /\.(jpg|jpeg|png|gif|webp|avif|bmp|svg|tiff|tif|ico|heic|heif|raw|arw|dng|cr2|nef)$/.test(fileName);
 
@@ -267,7 +261,7 @@ const Home = () => {
                 return false;
             }
 
-            // --- 校验 B: 大小检查 ---
+            // 校验大小
             if (file.size > MAX_SIZE) {
                 message.error(`"${file.name}" 超过 50MB，暂不支持`);
                 return false;
@@ -276,18 +270,13 @@ const Home = () => {
             return true;
         });
 
-        // 如果过滤后一张图都没剩，直接终止
         if (validFiles.length === 0) return;
 
-        // ----------------------------------------------------------------
-        // 下面是原有的扫描逻辑，注意把 files 改成 validFiles
-        // ----------------------------------------------------------------
-
-        // 1. 进入扫描模式
+        // 2. 【进入扫描模式】
         setUploadState('scanning');
-        setUploadStatusText('正在初始化智能上传通道...'); // 瞎编点高大上的词
+        setUploadStatusText(`正在建立量子通道，准备传输 ${validFiles.length} 个文件...`);
 
-        // 定义一些“假”的 AI 步骤，用来提升体验
+        // 3. 【AI 步骤文案】
         const aiSteps = [
             "正在进行加密传输...",
             "AI 引擎正在分析像素结构...",
@@ -296,8 +285,8 @@ const Home = () => {
             "正在进行最终资源归档..."
         ];
 
-        // 启动一个定时器来切换文案（纯视觉效果）
         let stepIndex = 0;
+        // 如果文件很多，不要让 AI 文案太快结束，根据文件数量动态调整定时器
         const textInterval = setInterval(() => {
             if (stepIndex < aiSteps.length) {
                 setUploadStatusText(aiSteps[stepIndex]);
@@ -307,40 +296,60 @@ const Home = () => {
 
         let successCount = 0;
         let failCount = 0;
+        const results = [];
 
         try {
-            // 2. 真实的后端上传逻辑
-            const uploadPromises = Array.from(validFiles).map(async (file) => {
-                const formData = new FormData();
-                formData.append('file', file);
-                try {
-                    const res = await axios.post('/api/image/upload', formData);
-                    if (res.data.code === 200) return true;
-                    return false;
-                } catch (e) { return false; }
-            });
+            // 4. 【核心修改：并发控制】
+            const BATCH_SIZE = 3; // 每次并发 3 张 (推荐值：3~5)
 
-            const results = await Promise.all(uploadPromises);
+            for (let i = 0; i < validFiles.length; i += BATCH_SIZE) {
+                // 切片：获取当前这一批的 3 个文件
+                const batch = validFiles.slice(i, i + BATCH_SIZE);
+
+                // (可选) 如果文件确实很多，可以在界面上实时更新具体的进度
+                if (validFiles.length > 5) {
+                    setUploadStatusText(`正在传输批次 ${Math.ceil((i + 1) / BATCH_SIZE)} / ${Math.ceil(validFiles.length / BATCH_SIZE)} ...`);
+                }
+
+                // 并行处理这一批
+                const batchResults = await Promise.all(
+                    batch.map(async (file) => {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                            const res = await axios.post('/api/image/upload', formData);
+                            if (res.data.code === 200) return true;
+                            return false;
+                        } catch (e) { return false; }
+                    })
+                );
+
+                // 把这一批的结果存起来
+                results.push(...batchResults);
+
+                // (可选) 稍微停顿 300ms，防止请求发得太快后端顶不住，也让动画更流畅
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // 统计结果
             successCount = results.filter(r => r).length;
             failCount = results.length - successCount;
 
         } catch (error) {
-            console.error("Upload error", error);
+            console.error("Batch upload error", error);
         } finally {
-            // 3. 扫尾工作
+            // 5. 【扫尾工作】
             clearInterval(textInterval);
 
-            // 稍微停顿一下，让用户看到最后一步
             setUploadStatusText(
                 failCount === 0
                     ? "分析完成！系统同步完毕。"
                     : `部分完成。${failCount} 张上传失败。`
             );
 
-            // 4. 延迟关闭，并刷新列表
             setTimeout(() => {
                 setIsUploadModalOpen(false);
-                setUploadState('idle'); // 重置状态
+                setUploadState('idle');
                 fetchImages();
                 fetchTags();
                 if (successCount > 0) message.success(`成功导入 ${successCount} 张图片`);

@@ -30,6 +30,16 @@ const AIUploadModal = ({ isOpen, onClose, onFileSelect, uploadState = 'idle', st
         }
     };
 
+    // 修改 handleFileSelect 逻辑（或者直接改 input 的 onChange）
+    const handleFileChange = (e) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            onFileSelect(files);
+        }
+        // 【核心修复】无论成功与否，选完就清空，允许下次重复选同个文件
+        e.target.value = '';
+    };
+
     // 如果不在 open 状态，不渲染内容 (配合 CSS opacity)
     // 或者直接控制 className
     return (
@@ -98,7 +108,7 @@ const AIUploadModal = ({ isOpen, onClose, onFileSelect, uploadState = 'idle', st
                         style={{ display: 'none' }}
                         accept="image/*"
                         multiple
-                        onChange={(e) => onFileSelect(e.target.files)}
+                        onChange={handleFileChange}
                     />
                 </div>
             </div>
