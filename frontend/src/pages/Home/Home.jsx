@@ -247,6 +247,42 @@ const Home = () => {
     const handleSmartUpload = async (files) => {
         if (!files || files.length === 0) return;
 
+        // 1. 定义校验规则
+        const MAX_SIZE = 50 * 1024 * 1024; // 限制 50MB (足够容纳单反原图)
+
+        // 2. 进行过滤
+        const validFiles = Array.from(files).filter(file => {
+            // --- 校验 A: 格式检查 ---
+            // 策略1：优先判断浏览器识别的 MIME type 是否以 'image/' 开头
+            // 这能覆盖：jpg, png, gif, webp, avif, bmp, svg, ico, tiff 等
+            const isMimeTypeImage = file.type.startsWith('image/');
+
+            // 策略2：如果浏览器没识别出来(有些 raw/heic 格式 type 可能为空)，则校验后缀名作为兜底
+            // 尽可能列全所有主流图片格式
+            const fileName = file.name.toLowerCase();
+            const isExtensionImage = /\.(jpg|jpeg|png|gif|webp|avif|bmp|svg|tiff|tif|ico|heic|heif|raw|arw|dng|cr2|nef)$/.test(fileName);
+
+            if (!isMimeTypeImage && !isExtensionImage) {
+                message.error(`"${file.name}" 不是有效的图片文件，已跳过`);
+                return false;
+            }
+
+            // --- 校验 B: 大小检查 ---
+            if (file.size > MAX_SIZE) {
+                message.error(`"${file.name}" 超过 50MB，暂不支持`);
+                return false;
+            }
+
+            return true;
+        });
+
+        // 如果过滤后一张图都没剩，直接终止
+        if (validFiles.length === 0) return;
+
+        // ----------------------------------------------------------------
+        // 下面是原有的扫描逻辑，注意把 files 改成 validFiles
+        // ----------------------------------------------------------------
+
         // 1. 进入扫描模式
         setUploadState('scanning');
         setUploadStatusText('正在初始化智能上传通道...'); // 瞎编点高大上的词
@@ -274,7 +310,7 @@ const Home = () => {
 
         try {
             // 2. 真实的后端上传逻辑
-            const uploadPromises = Array.from(files).map(async (file) => {
+            const uploadPromises = Array.from(validFiles).map(async (file) => {
                 const formData = new FormData();
                 formData.append('file', file);
                 try {
