@@ -295,68 +295,86 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         return String.format("%.2f, %.2f", lat, lon);
     }
 
+    // 定义一个简单的同义词库 (静态定义即可，也可以做成数据库表)
+    private static final Map<String, List<String>> SYNONYM_MAP = new HashMap<>();
+    static {
+        SYNONYM_MAP.put("猫", List.of("猫", "小猫", "喵星人", "Cat"));
+        SYNONYM_MAP.put("狗", List.of("狗", "小狗", "汪星人", "Dog"));
+        SYNONYM_MAP.put("车", List.of("车", "汽车", "Car", "车辆"));
+        SYNONYM_MAP.put("风景", List.of("风景", "景色", "Landscape", "View"));
+        SYNONYM_MAP.put("人", List.of("人", "人像", "Portrait"));
+    }
+
     /**
-     * 综合搜索：同时搜索 标签、文件名、以及 EXIF 元数据 (地点、相机全名、具体时间)
+     * 高级搜索：分词 + 多维度 + 智能日期匹配
      */
-    public List<ImageInfo> searchImages(Long userId, String keyword, Boolean onlyFavorites) {
-        // 存储所有命中的图片 ID
-        Set<Long> targetImageIds = new HashSet<>();
-        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
-
-        if (hasKeyword) {
-            String cleanKeyword = keyword.trim();
-
-            // --- 1. 搜标签 (包含你存进去的 Sony, 2025 等) ---
-            QueryWrapper<ImageTag> tagQuery = new QueryWrapper<>();
-            tagQuery.like("tag_name", cleanKeyword);
-            List<ImageTag> tags = tagMapper.selectList(tagQuery);
-
-            if (!tags.isEmpty()) {
-                List<Long> tagIds = tags.stream().map(ImageTag::getId).toList();
-                QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
-                relQuery.in("tag_id", tagIds);
-                List<Long> idsFromTags = relationMapper.selectList(relQuery)
-                        .stream().map(ImageTagRelation::getImageId).toList();
-                targetImageIds.addAll(idsFromTags);
-            }
-
-            // --- 2. 搜 EXIF 元数据 (解决“山西”搜不到的问题) ---
-            QueryWrapper<ImageMetadata> metaQuery = new QueryWrapper<>();
-            metaQuery.like("location_name", cleanKeyword)  // 搜地点：山西、太原
-                    .or().like("camera_model", cleanKeyword); // 搜相机全名：ILCE-7M3
-
-            List<ImageMetadata> metas = metadataMapper.selectList(metaQuery);
-            if (!metas.isEmpty()) {
-                List<Long> idsFromMeta = metas.stream().map(ImageMetadata::getImageId).toList();
-                targetImageIds.addAll(idsFromMeta);
-            }
-        }
-
-        // --- 3. 主表查询 ---
+    public List<ImageInfo> searchImages(Long userId, String inputKeyword, Boolean onlyFavorites) {
         QueryWrapper<ImageInfo> imgQuery = new QueryWrapper<>();
         imgQuery.eq("user_id", userId);
 
-        // 过滤收藏
+        // 1. 收藏过滤
         if (Boolean.TRUE.equals(onlyFavorites)) {
             imgQuery.eq("is_favorite", 1);
         }
 
-        // 关键词过滤
-        if (hasKeyword) {
-            if (targetImageIds.isEmpty()) {
-                // 如果标签和元数据都没命中，最后尝试搜一下文件路径(虽然意义不大)
-                imgQuery.like("file_path", keyword);
-            } else {
-                // 命中了 ID，则取并集：(ID 在列表里 OR 文件路径包含关键词)
-                imgQuery.and(wrapper ->
-                        wrapper.in("id", targetImageIds)
-                                .or().like("file_path", keyword)
-                );
-            }
+        // 2. 智能搜索核心逻辑
+        if (inputKeyword != null && !inputKeyword.trim().isEmpty()) {
+            String cleanInput = inputKeyword.trim();
+            String[] keywords = cleanInput.split("\\s+");
+
+            // 【修改后】：使用一个大的 AND 括号，里面包着所有关键词的 OR
+            // 这里的逻辑稍微变一下：我们希望 ( (匹配A) OR (匹配B) )
+            // 这样搜 "杭州 忻州" = 杭州 OR 忻州
+            // 搜 "杭州 风景" = 杭州 OR 风景 (这可能会导致结果变多，但不会为0)
+
+            imgQuery.and(mainWrapper -> {
+                for (String word : keywords) {
+                    // 同义词扩展
+                    List<String> searchWords = new ArrayList<>();
+                    searchWords.add(word);
+                    SYNONYM_MAP.forEach((k, v) -> {
+                        if (word.contains(k) || v.contains(word)) {
+                            searchWords.addAll(v);
+                        }
+                    });
+
+                    // 关键修改：这里用 mainWrapper.or()，表示关键词之间是“或”的关系
+                    mainWrapper.or(subWrapper -> {
+                        for (String w : searchWords) {
+                            // 每一个词的内部逻辑保持不变（搜文件名、标签、元数据...）
+                            subWrapper.or(item -> buildSingleWordQuery(item, w));
+                        }
+                    });
+                }
+            });
         }
 
         imgQuery.orderByDesc("upload_time");
         return this.list(imgQuery);
+    }
+
+    /**
+     * 辅助方法：构建单个关键词的复杂查询
+     * 检查：标签 OR 路径 OR 元数据(地点/相机) OR 年份
+     */
+    private void buildSingleWordQuery(QueryWrapper<ImageInfo> wrapper, String keyword) {
+        // 1. 搜文件名 (模糊)
+        wrapper.like("file_path", keyword);
+
+        // 2. 搜标签 (关联查询)
+        // 注意：在循环里做子查询可能会有点慢，但对于个人相册(万级以下)完全没问题
+        // select image_id from image_tag_relation where tag_id in (select id from image_tag where tag_name like %keyword%)
+        wrapper.or().inSql("id", "SELECT image_id FROM image_tag_relation WHERE tag_id IN (SELECT id FROM image_tag WHERE tag_name LIKE '%" + keyword + "%')");
+
+        // 3. 搜元数据 (地点、相机)
+        // select image_id from image_metadata where location_name like %keyword% or camera_model like %keyword%
+        wrapper.or().inSql("id", "SELECT image_id FROM image_metadata WHERE location_name LIKE '%" + keyword + "%' OR camera_model LIKE '%" + keyword + "%'");
+
+        // 4. 【智能嗅探】如果是数字，尝试搜年份
+        if (keyword.matches("\\d{4}")) {
+            // 假设 keyword 是 "2024"，匹配 metadata 里的 shoot_time
+            wrapper.or().inSql("id", "SELECT image_id FROM image_metadata WHERE YEAR(shoot_time) = " + keyword);
+        }
     }
 
     /**
