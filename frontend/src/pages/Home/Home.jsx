@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // 引入 axios
+// import axios from 'axios'; // 引入 axios
+import axios from '../../utils/request'; // <--- 引用你写好的 request.js
 import './Home.css';
 import { message, Modal, Select } from 'antd'; // 引入 Modal 和 Select
 import PhotoEditorModal from '../../components/PhotoEditorModal/PhotoEditorModal';
@@ -32,6 +33,8 @@ const Home = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadState, setUploadState] = useState('idle'); // idle, scanning, success
     const [uploadStatusText, setUploadStatusText] = useState('');
+
+    const [showingFavorites, setShowingFavorites] = useState(false);
 
     // 搜索执行函数
     const handleSearch = () => {
@@ -90,20 +93,35 @@ const Home = () => {
     const [images, setImages] = useState([]);
 
     // 【修改】fetchImages 支持参数
-    const fetchImages = async (query = null) => {
+    const fetchImages = async (query = null, onlyFav = false) => {
         try {
             // query 可能是 tag (侧边栏) 也可能是 keyword (搜索框)
             // 这里我们统称为 query
-            const url = query
-                ? `/api/image/list?keyword=${encodeURIComponent(query)}` // 后端接口已经改成 keyword 了
-                : '/api/image/list';
+            let url = '/api/image/list';
+            const params = [];
+
+            if (query) params.push(`keyword=${encodeURIComponent(query)}`);
+            if (onlyFav) params.push(`onlyFavorites=true`);
+
+            if (params.length > 0) {
+                url += '?' + params.join('&');
+            }
+
+            // const url = query
+            //     ? `/api/image/list?keyword=${encodeURIComponent(query)}` // 后端接口已经改成 keyword 了
+            //     : '/api/image/list';
 
             const res = await axios.get(url);
             if (res.data.code === 200) {
                 setImages(res.data.data);
 
-                // 【核心优化】搜索后的视图跳转逻辑
-                if (query) {
+                // 更新视图状态
+                if (onlyFav) {
+                    setTimelineTitle('My Favorites');
+                    setViewMode('grid'); // 收藏夹一般用网格看
+                    setShowingFavorites(true);
+                    setCurrentTag(null);
+                } else if (query) {
                     setViewMode('timeline'); // 自动切到瀑布流
                     setTimelineTitle(`"${query}"`); // 更新标题
                     setCurrentTag(null); // 清除侧边栏的选中状态，避免混淆
@@ -114,6 +132,27 @@ const Home = () => {
             }
         } catch (error) {
             console.error("获取图片列表失败:", error);
+        }
+    };
+
+    // 【新增】点击爱心逻辑
+    const handleToggleFavorite = async (e, img) => {
+        e.stopPropagation(); // 防止触发卡片点击（多选）
+
+        // 乐观更新：先在前端改状态，让用户觉得极快
+        setImages(prev => prev.map(item => {
+            if (item.id === img.id) {
+                return { ...item, isFavorite: item.isFavorite === 1 ? 0 : 1 };
+            }
+            return item;
+        }));
+
+        try {
+            // 后台静默发送请求
+            await axios.post(`/api/image/${img.id}/favorite`);
+        } catch (error) {
+            message.error("操作失败");
+            fetchImages(); // 失败了就刷新回原样
         }
     };
 
@@ -561,10 +600,19 @@ const Home = () => {
                 <div className="menu-group">
                     <div className="menu-title">Library</div>
                     {/* <div className="menu-item active"><i className="ri-gallery-view-2"></i><span>All Photos</span></div> */}
-                    <div className={`menu-item ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => fetchImages(null)}>
+                    <div className={`menu-item ${viewMode === 'grid' && !showingFavorites ? 'active' : ''}`} onClick={() => {
+                        setShowingFavorites(false); // 1. 退出收藏模式
+                        setViewMode('grid');        // 2. 切回网格模式
+                        setCurrentTag(null);        // 3. 清除标签选中
+                        fetchImages(null);          // 4. 获取全部图片
+                    }}>
                         <i className="ri-gallery-view-2"></i><span>All Photos</span>
                     </div>
-                    <div className="menu-item"><i className="ri-heart-3-line"></i><span>Favorites</span></div>
+                    {/* 【修改】绑定收藏夹点击事件 */}
+                    <div className={`menu-item ${viewMode === 'grid' && showingFavorites ? 'active' : ''}`}
+                        onClick={() => fetchImages(null, true)}>
+                        <i className="ri-heart-3-line"></i><span>Favorites</span>
+                    </div>
                 </div>
                 <div className="menu-group">
                     <div className="menu-title">My Tags</div>
@@ -670,6 +718,14 @@ const Home = () => {
                                                 <i className="ri-check-line"></i>
                                             </div>
                                         )}
+
+                                        {/* 【新增】爱心按钮 */}
+                                        <div
+                                            className={`favorite-btn ${img.isFavorite === 1 ? 'active' : ''}`}
+                                            onClick={(e) => handleToggleFavorite(e, img)}
+                                        >
+                                            <i className={img.isFavorite === 1 ? "ri-heart-3-fill" : "ri-heart-3-line"}></i>
+                                        </div>
 
                                         <img
                                             src={`http://localhost:8080${img.thumbnailPath}`}
@@ -783,6 +839,14 @@ const Home = () => {
                                                 <i className="ri-check-line"></i>
                                             </div>
                                         )}
+
+                                        {/* 【新增】爱心按钮 */}
+                                        <div
+                                            className={`favorite-btn ${img.isFavorite === 1 ? 'active' : ''}`}
+                                            onClick={(e) => handleToggleFavorite(e, img)}
+                                        >
+                                            <i className={img.isFavorite === 1 ? "ri-heart-3-fill" : "ri-heart-3-line"}></i>
+                                        </div>
 
                                         <img
                                             src={`http://localhost:8080${img.thumbnailPath}`}

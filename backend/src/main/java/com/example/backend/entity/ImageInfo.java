@@ -13,6 +13,7 @@ public class ImageInfo {
     private String filePath;
     private String thumbnailPath;
     private LocalDateTime uploadTime;
+    private Integer isFavorite;
 
     // --- Getters and Setters ---
 
@@ -55,4 +56,8 @@ public class ImageInfo {
     public void setUploadTime(LocalDateTime uploadTime) {
         this.uploadTime = uploadTime;
     }
+
+    public Integer getIsFavorite() { return isFavorite; }
+
+    public void setIsFavorite(Integer isFavorite) { this.isFavorite = isFavorite; }
 }
