@@ -4,6 +4,7 @@ import axios from 'axios'; // 引入 axios
 import './Home.css';
 import { message, Modal, Select } from 'antd'; // 引入 Modal 和 Select
 import PhotoEditorModal from '../../components/PhotoEditorModal/PhotoEditorModal';
+import AIUploadModal from '../../components/AIUploadModal/AIUploadModal';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -26,6 +27,11 @@ const Home = () => {
     const [editingImage, setEditingImage] = useState(null);
 
     const searchInputRef = useRef(null);
+
+    // --- 新增状态：控制 AI 上传弹窗 ---
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadState, setUploadState] = useState('idle'); // idle, scanning, success
+    const [uploadStatusText, setUploadStatusText] = useState('');
 
     // 搜索执行函数
     const handleSearch = () => {
@@ -234,6 +240,120 @@ const Home = () => {
     const handleUploadClick = () => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
+        }
+    };
+
+    // --- 最终版：智能上传逻辑 (文件校验 + 中文文案 + 并发控制) ---
+    const handleSmartUpload = async (files) => {
+        if (!files || files.length === 0) return;
+
+        // 1. 【文件校验】
+        const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+        const validFiles = Array.from(files).filter(file => {
+            // 校验格式：MIME type 或 后缀名
+            const isMimeTypeImage = file.type.startsWith('image/');
+            const fileName = file.name.toLowerCase();
+            const isExtensionImage = /\.(jpg|jpeg|png|gif|webp|avif|bmp|svg|tiff|tif|ico|heic|heif|raw|arw|dng|cr2|nef)$/.test(fileName);
+
+            if (!isMimeTypeImage && !isExtensionImage) {
+                message.error(`"${file.name}" 不是有效的图片文件，已跳过`);
+                return false;
+            }
+
+            // 校验大小
+            if (file.size > MAX_SIZE) {
+                message.error(`"${file.name}" 超过 50MB，暂不支持`);
+                return false;
+            }
+
+            return true;
+        });
+
+        if (validFiles.length === 0) return;
+
+        // 2. 【进入扫描模式】
+        setUploadState('scanning');
+        setUploadStatusText(`正在建立量子通道，准备传输 ${validFiles.length} 个文件...`);
+
+        // 3. 【AI 步骤文案】
+        const aiSteps = [
+            "正在进行加密传输...",
+            "AI 引擎正在分析像素结构...",
+            "正在进行对象识别...",
+            "生成智能语义标签...",
+            "正在进行最终资源归档..."
+        ];
+
+        let stepIndex = 0;
+        // 如果文件很多，不要让 AI 文案太快结束，根据文件数量动态调整定时器
+        const textInterval = setInterval(() => {
+            if (stepIndex < aiSteps.length) {
+                setUploadStatusText(aiSteps[stepIndex]);
+                stepIndex++;
+            }
+        }, 800);
+
+        let successCount = 0;
+        let failCount = 0;
+        const results = [];
+
+        try {
+            // 4. 【核心修改：并发控制】
+            const BATCH_SIZE = 3; // 每次并发 3 张 (推荐值：3~5)
+
+            for (let i = 0; i < validFiles.length; i += BATCH_SIZE) {
+                // 切片：获取当前这一批的 3 个文件
+                const batch = validFiles.slice(i, i + BATCH_SIZE);
+
+                // (可选) 如果文件确实很多，可以在界面上实时更新具体的进度
+                if (validFiles.length > 5) {
+                    setUploadStatusText(`正在传输批次 ${Math.ceil((i + 1) / BATCH_SIZE)} / ${Math.ceil(validFiles.length / BATCH_SIZE)} ...`);
+                }
+
+                // 并行处理这一批
+                const batchResults = await Promise.all(
+                    batch.map(async (file) => {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                            const res = await axios.post('/api/image/upload', formData);
+                            if (res.data.code === 200) return true;
+                            return false;
+                        } catch (e) { return false; }
+                    })
+                );
+
+                // 把这一批的结果存起来
+                results.push(...batchResults);
+
+                // (可选) 稍微停顿 300ms，防止请求发得太快后端顶不住，也让动画更流畅
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // 统计结果
+            successCount = results.filter(r => r).length;
+            failCount = results.length - successCount;
+
+        } catch (error) {
+            console.error("Batch upload error", error);
+        } finally {
+            // 5. 【扫尾工作】
+            clearInterval(textInterval);
+
+            setUploadStatusText(
+                failCount === 0
+                    ? "分析完成！系统同步完毕。"
+                    : `部分完成。${failCount} 张上传失败。`
+            );
+
+            setTimeout(() => {
+                setIsUploadModalOpen(false);
+                setUploadState('idle');
+                fetchImages();
+                fetchTags();
+                if (successCount > 0) message.success(`成功导入 ${successCount} 张图片`);
+            }, 1500);
         }
     };
 
@@ -507,21 +627,10 @@ const Home = () => {
                             </button>
                         </div>
 
-                        {/* <button className="upload-btn"><i className="ri-upload-cloud-2-line"></i>Upload</button> */}
-                        {/* 【修改】Upload 按钮绑定点击事件 */}
-                        <button className="upload-btn" onClick={handleUploadClick}>
+                        {/* 【修改】Upload 按钮只负责打开 Modal */}
+                        <button className="upload-btn" onClick={() => setIsUploadModalOpen(true)}>
                             <i className="ri-upload-cloud-2-line"></i>Upload
                         </button>
-
-                        {/* 【新增】隐藏的文件输入框 */}
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            accept="image/*" // 只接受图片
-                            multiple
-                            onChange={handleFileChange}
-                        />
 
                         {/* 【修改点 2】删除原来的 img 头像，换成文字问候 */}
                         <div
@@ -749,6 +858,15 @@ const Home = () => {
                         tokenSeparators={[',', ' ']}
                     />
                 </Modal>
+
+                {/* --- 【新增】渲染 AI 上传弹窗 --- */}
+                <AIUploadModal
+                    isOpen={isUploadModalOpen}
+                    onClose={() => setIsUploadModalOpen(false)}
+                    onFileSelect={(files) => handleSmartUpload(files)} // 连接处理函数
+                    uploadState={uploadState}      // 传入状态：idle 或 scanning
+                    statusText={uploadStatusText}  // 传入扫描文字
+                />
 
                 {/* --- 【新增】图片编辑器 Modal --- */}
                 {/* 这个组件通常放在最外层或者 main 的最后，只要它被渲染出来就行 */}

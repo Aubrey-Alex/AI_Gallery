@@ -80,7 +80,7 @@ public class AIService {
                     System.out.println("触发保底策略...");
                     for (int i = 0; i < Math.min(candidates.size(), 2); i++) {
                         JSONObject item = candidates.get(i);
-                        if (item.getDouble("score") > 0.1) {
+                        if (item.getDouble("score") > 0.09) {
                             finalTags.add(item.getString("keyword"));
                         }
                     }
