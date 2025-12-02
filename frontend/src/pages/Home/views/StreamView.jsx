@@ -1,10 +1,11 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-// 【关键修改】引入 EffectCreative
 import { EffectCreative, Mousewheel, Autoplay } from 'swiper/modules';
 
 import 'swiper/css';
-import 'swiper/css/effect-creative'; // 引入 creative 样式
+import 'swiper/css/effect-creative';
+// 某些版本的 Swiper 可能需要显式引入 pagination 或 autoplay 的 css，但这通常不是必须的
+// import 'swiper/css/autoplay'; 
 
 import './StreamView.css';
 
@@ -14,51 +15,48 @@ const StreamView = ({ images, onDoubleClick }) => {
     return (
         <div className="stream-view-container">
             <Swiper
-                // 1. 开启 grabCursor，让鼠标变成“抓手”，交互感更强
-                grabCursor={true}
+                // 【修改 1】增加 key，确保数据变化（如从0变成10张图）时，Swiper 能够完全重置并重新计算 loop
+                key={images.length}
 
-                // 2. 居中模式
+                grabCursor={true}
                 centeredSlides={true}
                 slidesPerView={'auto'}
-
-                // 3. 循环模式 (无限滚动)
                 loop={true}
 
-                // 4. 鼠标滚轮控制
+                // 【修改 2】修正鼠标滚轮配置
                 mousewheel={{
-                    sensitivity: 1.5, // 稍微灵敏一点
+                    sensitivity: 10,
                     thresholdDelta: 10,
+                    // forceToAxis: true, // 删除或改为 false，否则垂直滚轮无法控制水平滑块
+                    forceToAxis: false,
                 }}
 
-                // 5. 【核心炫技】切换为 Creative 效果
                 effect={'creative'}
                 creativeEffect={{
-                    limitProgress: 3, // 只渲染前后 3 张，优化性能
+                    limitProgress: 3,
                     prev: {
-                        // 左侧图片的变换：向左移，Z轴后退，并且带一点 Y 轴旋转
                         shadow: true,
                         translate: ['-120%', 0, -500],
-                        rotate: [0, 0, -10], // 微微向左倾斜
+                        rotate: [0, 0, -10],
                         opacity: 0.6,
                     },
                     next: {
-                        // 右侧图片的变换：向右移，Z轴后退，并且带一点 Y 轴旋转
                         shadow: true,
                         translate: ['120%', 0, -500],
-                        rotate: [0, 0, 10], // 微微向右倾斜
+                        rotate: [0, 0, 10],
                         opacity: 0.6,
                     },
-                    // 这种配置会让中间图完全正对观众，两边的图像翅膀一样张开，非常大气
                 }}
 
-                // 6. 自动缓慢流动 (像展览馆一样) - 用户操作时会停止
+                // 【修改 3】修正自动播放配置
                 autoplay={{
-                    delay: 3000,
-                    disableOnInteraction: true, // 用户一摸就停
-                    pauseOnMouseEnter: true,    // 鼠标放上去悬停
+                    delay: 500,
+                    // 改为 false，这样用户操作完后，过一会儿还会继续自动播，体验更好
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
                 }}
 
-                speed={600} // 切换速度，慢一点显得厚重
+                speed={1000}
                 modules={[EffectCreative, Mousewheel, Autoplay]}
                 className="mySwiper"
             >
@@ -67,7 +65,6 @@ const StreamView = ({ images, onDoubleClick }) => {
                         <div
                             className="slide-inner"
                             onDoubleClick={() => {
-                                // 这里可以加一个简单的点击反馈动画
                                 console.log("Enter Immersive Mode:", img.fileName);
                                 onDoubleClick(img);
                             }}
@@ -77,7 +74,6 @@ const StreamView = ({ images, onDoubleClick }) => {
                                 alt={img.fileName}
                                 loading="lazy"
                             />
-                            {/* 顶部的高光层，增加玻璃质感 */}
                             <div className="slide-overlay"></div>
                         </div>
                     </SwiperSlide>
