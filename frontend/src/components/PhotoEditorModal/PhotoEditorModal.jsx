@@ -403,11 +403,6 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                                 <label>地点:</label>
                                 <span>{meta.locationName || '未记录'}</span>
                             </div>
-                            <div className="info-row">
-                                <label>文件:</label>
-                                {/* 从 filePath 截取文件名 */}
-                                <span style={{ wordBreak: 'break-all' }}>{imageObj?.fileName || 'unknown.jpg'}</span>
-                            </div>
                         </div>
                     </div>
 
