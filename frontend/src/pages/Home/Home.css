@@ -1,0 +1,596 @@
+/* src/pages/Home/Home.css */
+
+/* --- 基础容器设置 --- */
+.home-container {
+    display: flex;
+    height: 100vh;
+    background-color: #050505;
+    font-family: 'Inter', sans-serif;
+    color: #e0e0e0;
+    overflow: hidden;
+}
+
+/* --- 侧边栏 Sidebar --- */
+.sidebar {
+    width: 260px;
+    background: #0A0A0A;
+    border-right: 1px solid #1F1F1F;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo span {
+    color: #FF5722;
+}
+
+.menu-group {
+    margin-bottom: 2rem;
+}
+
+.menu-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #666;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: #999;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background: #1A1A1A;
+    color: white;
+}
+
+.menu-item.active {
+    border-left: 3px solid #FF5722;
+}
+
+.menu-item i {
+    font-size: 1.1rem;
+}
+
+.ai-tag-badge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    background: #1F1F1F;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #666;
+}
+
+/* --- 主内容区 Main Content --- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-bar {
+    height: 80px;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(5, 5, 5, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #1F1F1F;
+    position: relative;
+    z-index: 50;
+}
+
+.search-container {
+    position: relative;
+    width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    background: #141414;
+    border: 1px solid #2A2A2A;
+    padding: 12px 40px 12px 16px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.view-toggles {
+    background: #141414;
+    border-radius: 8px;
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+    border: 1px solid #2A2A2A;
+}
+
+.view-btn {
+    border: none;
+    background: transparent;
+    color: #666;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-btn.active {
+    background: #333;
+    color: white;
+}
+
+.top-actions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.upload-btn {
+    background: #FF5722;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #333;
+    object-fit: cover;
+    cursor: pointer;
+} */
+
+.user-greeting-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+}
+
+.user-greeting-wrapper:hover {
+    opacity: 0.8;
+}
+
+.greeting-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    /* 浅灰色 Hello */
+    line-height: 1.2;
+}
+
+.username-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    /* 亮白色用户名 */
+    line-height: 1.2;
+}
+
+/* --- 核心视口 Viewport --- */
+.gallery-viewport {
+    flex: 1;
+    position: relative;
+    background: #050505;
+    overflow: hidden;
+    perspective: 2000px;
+    /* 3D 景深 */
+    display: flex;
+    align-items: center;
+}
+
+/* 容器 Transition */
+.card-container-fade {
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.5s ease;
+}
+
+/* --- 模式 A: Grid --- */
+.gallery-viewport.mode-grid {
+    display: block;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    opacity: 1;
+}
+
+/* --- 卡片通用样式 & 3D 修复 --- */
+.card-item {
+    position: relative;
+    height: 320px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #1a1a1a;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    /* 【修改点 3】开启硬件加速，修复 3D 渲染时的图片错误/撕裂 */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.8);
+    transition: filter 0.4s;
+
+    /* 【修改点 4】防止图片在缩放时出现像素锯齿或层级闪烁 */
+    backface-visibility: hidden;
+    transform: translateZ(0.1px);
+    /* 微微抬起，防止 Z-fighting */
+}
+
+/* Grid 模式的 hover */
+.grid-layout .card-item:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+    /* 修复覆盖层闪烁 */
+    transform: translateZ(0.2px);
+}
+
+.card-item:hover .card-overlay {
+    opacity: 1;
+}
+
+.card-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.ai-tag {
+    font-size: 0.8rem;
+    color: #FF5722;
+    background: rgba(255, 87, 34, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* --- 模式 B: Stream (流体动画) --- */
+
+.stream-wrapper {
+    position: absolute;
+    height: 400px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    display: block;
+    pointer-events: none;
+    transform-style: preserve-3d;
+}
+
+.stream-wrapper .card-item {
+    pointer-events: auto;
+}
+
+@keyframes infiniteScrollRight {
+    0% {
+        transform: translateY(-50%) translateX(0%) rotateY('30deg');
+    }
+
+    100% {
+        transform: translateY(-50%) translateX(50%);
+    }
+}
+
+.is-flowing {
+    animation: infiniteScrollRight 20s linear infinite;
+}
+
+.is-flowing:hover {
+    animation-play-state: paused;
+}
+
+.card-in-stream {
+    position: absolute;
+    width: 260px;
+    height: 380px;
+    top: 50%;
+    transform-origin: center center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1a1a1a;
+    transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+    pointer-events: auto;
+    will-change: transform, left;
+}
+
+/* 【修改点 5 - 关键】使用 .is-active 替代 :hover，且严禁使用 margin */
+.card-in-stream.is-active {
+    /* 严禁在这里加 margin！否则会导致布局挤压和闪烁 */
+
+    /* 悬停时的 3D 姿态：变大、回正、稍微浮起 */
+    transform: translateY(-50%) rotateY(0deg) scale(1.15) translateZ(200px) !important;
+
+    /* 提高层级，覆盖周围卡片 */
+    z-index: 99999 !important;
+
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8) !important;
+    border: 2px solid #FF5722;
+}
+
+.card-in-stream.is-active .card-img {
+    filter: brightness(1.1);
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* --- 多选与选中样式 --- */
+.card-item.is-selected,
+.masonry-item.is-selected {
+    border: 3px solid #FF5722;
+    /* 选中时显示橙色边框 */
+    transform: scale(0.95);
+    /* 稍微缩小一点 */
+}
+
+.check-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #FF5722;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 自定义右键菜单 --- */
+.context-menu {
+    position: fixed;
+    background: #1F1F1F;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    padding: 5px 0;
+    min-width: 150px;
+}
+
+.context-menu-item {
+    padding: 10px 15px;
+    color: #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #FF5722;
+    color: white;
+}
+
+.tags-row {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+/* --- Timeline/Waterfall Mode --- */
+.timeline-view {
+    padding: 2rem;
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+}
+
+.timeline-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.timeline-header h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* 纯 CSS 实现瀑布流 (核心) */
+.masonry-grid {
+    column-count: 4;
+    /* 默认4列 */
+    column-gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .masonry-grid {
+        column-count: 3;
+    }
+}
+
+@media (max-width: 800px) {
+    .masonry-grid {
+        column-count: 2;
+    }
+}
+
+.masonry-item {
+    break-inside: avoid;
+    /* 防止图片被切断 */
+    margin-bottom: 1.5rem;
+    background: #1a1a1a;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #333;
+    transition: transform 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+
+.masonry-item:hover {
+    transform: translateY(-5px);
+    border-color: #FF5722;
+}
+
+.masonry-img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+/* src/pages/Home/Home.css */
+
+/* 在 .card-item 里添加心形按钮样式 */
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    /* 放在左上角，和右上角的选中对勾分开 */
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.favorite-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.favorite-btn i {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    /* 默认灰色 */
+    transition: color 0.2s;
+}
+
+/* 激活状态（红心）：应用持续的跳动动画 */
+.favorite-btn.active i {
+    color: #FF4081;
+    /* 骚粉色/红色 */
+    /* 1.3s: 每次跳动的完整周期（稍微慢一点，显得优雅）
+       infinite: 无限循环，像真的活着一样
+       ease-in-out: 动作柔和
+    */
+    animation: softHeartBeat 1.3s ease-in-out infinite;
+}
+
+/* 自定义心跳动画：模拟真实的“扑通-扑通”双重节奏 */
+@keyframes softHeartBeat {
+    0% {
+        transform: scale(1);
+    }
+
+    14% {
+        transform: scale(1.35);
+        /* 第1跳：幅度仅放大到 1.12，很克制 */
+    }
+
+    28% {
+        transform: scale(1);
+        /* 回缩 */
+    }
+
+    42% {
+        transform: scale(1.35);
+        /* 第2跳：再次微弱放大 */
+    }
+
+    70% {
+        transform: scale(1);
+        /* 回缩并长停顿，等待下一次循环 */
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
