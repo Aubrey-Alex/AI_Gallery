@@ -2,17 +2,20 @@ package com.example.backend.entity;
 
 import java.util.List;
 
-// 继承 ImageInfo，拥有它的所有属性
 public class ImageVO extends ImageInfo {
-    // 额外增加一个标签列表属性
-    private List<String> tags;
+    // 【核心修改】从 List<String> 改为 List<ImageTag>，以便携带 tagType
+    private List<ImageTag> tags;
+    private ImageMetadata metadata;
+    private String fileName;
+    private Integer isFavorite;
 
-    // Getter & Setter
-    public List<String> getTags() {
-        return tags;
-    }
+    // Getters & Setters
+    public List<ImageTag> getTags() { return tags; }
+    public void setTags(List<ImageTag> tags) { this.tags = tags; }
 
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
+    // ... 其他 getter/setter 不变
+    public ImageMetadata getMetadata() { return metadata; }
+    public void setMetadata(ImageMetadata metadata) { this.metadata = metadata; }
+    public String getFileName() { return fileName; }
+    public void setFileName(String fileName) { this.fileName = fileName; }
 }
