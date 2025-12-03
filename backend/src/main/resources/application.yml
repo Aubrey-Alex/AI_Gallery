@@ -23,16 +23,16 @@ file:
 # 阿里云 DashScope 配置
 aliyun:
   dashscope:
-    api-key: sk-6bbf5eaf65c84bfe85556832f339c71c
+    api-key: "sk-6bbf5eaf65c84bfe85556832f339c71c"
 
 # 高德地图配置
 amap:
   web-service:
-    key: 1eb04750b7f55f92385ded2cf143ea70
+    key: "1eb04750b7f55f92385ded2cf143ea70"
 
 # 百度 AI 图片识别配置
 baidu:
   ai:
-    app-id: 121117508
-    api-key: wRdtMM5oyZA7ElnCXTd8WR6N
-    secret-key: pPvK7TUIAyQ2rQza8Bgxin9lHfibDDfj
+    app-id: "121117508"
+    api-key: "wRdtMM5oyZA7ElnCXTd8WR6N"
+    secret-key: "pPvK7TUIAyQ2rQza8Bgxin9lHfibDDfj"
