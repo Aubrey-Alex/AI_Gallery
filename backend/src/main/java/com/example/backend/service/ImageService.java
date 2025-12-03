@@ -58,6 +58,9 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
     @Autowired
     private AIService aiService;
 
+    @Autowired
+    private MCPService mcpService;
+
     /**
      * 上传图片主逻辑
      */
@@ -165,6 +168,19 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         } catch (Exception e) {
             System.err.println("AI 识别跳过: " + e.getMessage());
         }
+
+        // === 在这里插入 AI 向量化逻辑 (新代码) ===
+        // 开启一个新线程异步处理，防止用户上传时卡顿
+        new Thread(() -> {
+            try {
+                // 稍微等一下，确保事务提交，图片文件已落盘
+                Thread.sleep(500);
+                // 这里的 mcpService 需要在 ImageService 里注入 (@Autowired private MCPService mcpService;)
+                mcpService.vectoriseImage(imageInfo.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
 
         return imageInfo;
     }
