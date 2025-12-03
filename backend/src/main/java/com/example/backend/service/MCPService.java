@@ -150,9 +150,13 @@ public class MCPService {
     public static class SearchResult {
         public Long id;
         public Double score;
-        public SearchResult(Long id, Double score) {
+        public String thumbnailPath;
+        public String filePath;
+        public SearchResult(Long id, Double score, String thumbnailPath, String filePath) {
             this.id = id;
             this.score = score;
+            this.thumbnailPath = thumbnailPath;
+            this.filePath = filePath;
         }
     }
 
@@ -207,11 +211,14 @@ public class MCPService {
                     double similarity = cosineSimilarity(queryVector, imgVector);
 
                     // 5. 打印每张图的相似度，方便调试阈值
-                     System.out.println("ID: " + meta.getImageId() + " | Similarity: " + similarity);
+                    System.out.println("ID: " + meta.getImageId() + " | Similarity: " + similarity);
+                    ImageInfo info = imageInfoMapper.selectById(meta.getImageId());
 
                     // 阈值根据实际效果微调
                     if (similarity > 0.15) {
-                        results.add(new SearchResult(meta.getImageId(), similarity));
+                        results.add(new SearchResult(meta.getImageId(), similarity,
+                                info.getThumbnailPath(),
+                                info.getFilePath()));
                     }
                 }
             }
