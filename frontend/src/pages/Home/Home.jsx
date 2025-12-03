@@ -12,6 +12,7 @@ import TopBar from './components/TopBar';
 import GridView from './views/GridView';
 import StreamView from './views/StreamView';
 import TimelineView from './views/TimelineView';
+import AiSearchOverlay from '../../components/AiSearch/AiSearchOverlay';
 
 // 引入弹窗组件
 import PhotoEditorModal from '../../components/PhotoEditorModal/PhotoEditorModal';
@@ -140,8 +141,19 @@ const Home = () => {
         });
     };
 
-    const handleOpenEditor = (img) => {
-        setEditingImage(img);
+    const handleOpenEditor = (targetImg) => {
+        // 【核心修复】
+        // 1. 尝试从当前已加载的主列表(images)中查找该图片的完整信息
+        // AI Search 返回的对象是 "Lite" 版（缺 tags/metadata），而 images 里的对象是 "Full" 版
+        const fullImg = images.find(i => i.id === targetImg.id);
+
+        // 2. 智能合并：
+        // 如果找到了完整对象(fullImg)，就以它为主（因为它有 tags 和 metadata）；
+        // 既然 fullImg 能在主页网格正常打开，它一定也有正确的 path。
+        // 如果没找到（比如搜的是还没加载出来的老图），就只能用 targetImg 保底。
+        const finalImg = fullImg || targetImg;
+
+        setEditingImage(finalImg);
         setIsEditorOpen(true);
         setContextMenu(null);
     };
@@ -397,6 +409,11 @@ const Home = () => {
                     onClose={() => setIsEditorOpen(false)}
                     imageObj={editingImage}
                     onSave={handleSaveEditedImage}
+                />
+
+                <AiSearchOverlay
+                    onNavigate={navigate}
+                    onImageClick={handleOpenEditor}
                 />
             </main>
         </div>

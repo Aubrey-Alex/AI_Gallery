@@ -1,0 +1,506 @@
+/* src/components/AiSearch/AiSearchOverlay.css */
+
+/* --- 1. 基础保持不变 (保留原本的终端风) --- */
+.ai-fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    /* 【关键修改 1】降低入口按钮层级，避免挡住编辑器 */
+    z-index: 9000;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ai-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    background: rgba(0, 20, 20, 0.8);
+}
+
+.ai-fab.hidden {
+    transform: scale(0) rotate(180deg);
+    opacity: 0;
+}
+
+.ai-fab i {
+    font-size: 1.8rem;
+    color: #0ff;
+}
+
+/* --- 2. 覆盖层 (调整 Z-Index) --- */
+.ai-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    /* 【关键修改 2】设定一个固定的高层级，但必须比编辑器(PhotoEditor)低 */
+    /* 假设编辑器是 10001，这里设为 9999 */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+}
+
+.ai-content {
+    position: relative;
+    width: 80%;
+    max-width: 1000px;
+    height: 80vh;
+    background: rgba(10, 15, 20, 0.95);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: zoomIn 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* src/components/AiSearch/AiSearchOverlay.css */
+
+/* ... 前面的代码保持不变 ... */
+
+/* --- 3. 头部与美化后的搜索胶囊 --- */
+.ai-header {
+    height: 100px;
+    /*稍微增高一点，让呼吸感更强*/
+    border-bottom: 1px solid rgba(0, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 居中搜索条 */
+    padding: 0 40px;
+    background: radial-gradient(circle at center top, rgba(0, 255, 255, 0.03), transparent 70%);
+    position: relative;
+    gap: 20px;
+}
+
+/* 搜索条容器 - 核心美化部分 */
+.ai-search-bar {
+    flex: 1;
+    max-width: 100%;
+    /* 限制最大宽度，更像一个搜索工具 */
+    height: 56px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    border-radius: 16px;
+    /* 稍微圆润一点 */
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 激活状态（当输入框获得焦点时） */
+.ai-search-bar:focus-within {
+    border-color: rgba(0, 255, 255, 0.6);
+    background: rgba(0, 10, 15, 0.6);
+    box-shadow:
+        0 0 0 4px rgba(0, 255, 255, 0.05),
+        0 0 30px rgba(0, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+/* 搜索条背景扫描光效 */
+.ai-search-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(0, 255, 255, 0.05),
+            transparent);
+    transform: skewX(-20deg);
+    transition: left 0.5s;
+    pointer-events: none;
+}
+
+.ai-search-bar:focus-within::after {
+    animation: shine 3s infinite linear;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+
+    50% {
+        left: 200%;
+    }
+
+    100% {
+        left: 200%;
+    }
+}
+
+/* 左侧图标 */
+.ai-icon-pulse {
+    font-size: 1.4rem;
+    color: rgba(0, 255, 255, 0.5);
+    margin-right: 15px;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.ai-search-bar:focus-within .ai-icon-pulse {
+    color: #0ff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+/* 输入框本体 */
+.ai-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 400;
+    outline: none;
+    font-family: 'Inter', system-ui, sans-serif;
+    /* 字体稍微现代一点 */
+    letter-spacing: 0.5px;
+}
+
+.ai-input::placeholder {
+    color: rgba(255, 255, 255, 0.15);
+    font-weight: 300;
+    font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+.ai-search-bar:focus-within .ai-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* 内部的小清除按钮 (x) */
+.ai-clear-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    transition: all 0.2s;
+}
+
+.ai-clear-btn:hover {
+    color: #0ff;
+    transform: scale(1.1);
+}
+
+/* 整个模态框的大关闭按钮 */
+.ai-close-main {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.ai-close-main:hover {
+    background: rgba(255, 0, 50, 0.1);
+    /* 红色警示色，符合关闭逻辑 */
+    border-color: rgba(255, 0, 50, 0.3);
+    color: #ff3333;
+}
+
+/* ... 后面的 ai-body 等代码保持不变 ... */
+
+/* --- 4. 中间内容与加载动画 (保持原样) --- */
+.ai-body {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.ai-loading-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #0ff;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 30px;
+}
+
+@keyframes blink-cursor {
+    from {
+        border-right-color: rgba(0, 255, 255, .75);
+    }
+
+    to {
+        border-right-color: transparent;
+    }
+}
+
+.terminal-text {
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem;
+    margin-top: 20px;
+    opacity: 0.8;
+}
+
+.terminal-text .cursor {
+    border-right: 2px solid rgba(0, 255, 255, .75);
+    animation: blink-cursor 0.8s step-end infinite;
+    padding-right: 2px;
+}
+
+/* 扫描线动画 */
+@keyframes scan-line-move {
+    0% {
+        top: 0%;
+        opacity: 1;
+    }
+
+    50% {
+        top: 100%;
+        opacity: 0.2;
+    }
+
+    100% {
+        top: 0%;
+        opacity: 1;
+    }
+}
+
+.ai-loading-container::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #0ff, transparent);
+    top: 0;
+    animation: scan-line-move 3s linear infinite;
+    box-shadow: 0 0 5px #0ff;
+}
+
+/* --- 5. 置信度滑块 (保持原样) --- */
+.confidence-control {
+    background: rgba(0, 255, 255, 0.05);
+    padding: 20px 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0, 255, 255, 0.1);
+    transition: border-color 0.3s;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #0ff;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-val {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #0ff;
+    transition: color 0.3s;
+}
+
+.cyber-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    outline: none;
+}
+
+.cyber-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #000;
+    border: 2px solid #0ff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px #0ff;
+    transition: all 0.3s;
+}
+
+.cyber-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.slider-hint {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+}
+
+/* 动态颜色类 */
+.confidence-control.high-precision {
+    border-color: rgba(57, 255, 20, 0.5);
+}
+
+.confidence-control.high-precision .cyber-slider::-webkit-slider-thumb {
+    border-color: #39ff14;
+    box-shadow: 0 0 15px #39ff14;
+}
+
+.confidence-control.high-precision .score-val {
+    color: #39ff14;
+}
+
+.confidence-control.low-inspiration {
+    border-color: rgba(255, 170, 0, 0.5);
+}
+
+.confidence-control.low-inspiration .cyber-slider::-webkit-slider-thumb {
+    border-color: #ffaa00;
+    box-shadow: 0 0 15px #ffaa00;
+}
+
+.confidence-control.low-inspiration .score-val {
+    color: #ffaa00;
+}
+
+/* --- 6. 结果网格 (【重点修改】：对齐 Home 的卡片体验，但保留赛博风) --- */
+.ai-grid {
+    display: grid;
+    /* 调整列宽，使其不那么拥挤 */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    padding-bottom: 20px;
+}
+
+.ai-card {
+    position: relative;
+    /* 【关键】强制正方形比例，跟 Home 界面一致，不乱跑 */
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    /* 默认透明边框，防止抖动 */
+    border: 1px solid transparent;
+    transition: all 0.3s;
+    background: #000;
+}
+
+/* 悬停效果：保留原来的青色发光 */
+.ai-card:hover {
+    border-color: #0ff;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(0, 255, 255, 0.3);
+    z-index: 1;
+    /* 悬停时轻微浮起 */
+}
+
+/* 图片填充满容器 */
+.ai-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* 裁剪模式 */
+    transition: transform 0.5s ease;
+}
+
+.ai-card:hover img {
+    transform: scale(1.1);
+    /* 悬停微放大 */
+}
+
+.score-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #0ff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    z-index: 2;
+}
+
+/* 动画工具类 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 50px;
+    color: rgba(0, 255, 255, 0.3);
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    display: block;
+}

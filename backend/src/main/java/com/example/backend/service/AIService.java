@@ -3,8 +3,10 @@ package com.example.backend.service;
 import com.baidu.aip.imageclassify.AipImageClassify;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct; // SpringBoot 3.x 用 jakarta.annotation.PostConstruct
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,70 +14,82 @@ import java.util.List;
 @Service
 public class AIService {
 
-    public static final String APP_ID = "121117508";
-    public static final String API_KEY = "wRdtMM5oyZA7ElnCXTd8WR6N";
-    public static final String SECRET_KEY = "pPvK7TUIAyQ2rQza8Bgxin9lHfibDDfj";
+    // 1. 注入变量 (注意去掉了 static)
+    @Value("${baidu.ai.app-id}")
+    private String appId;
 
-    // 定义两个阈值
-    private static final double STRICT_THRESHOLD = 0.4; // 严格阈值：用于常规筛选
-    private static final double MIN_SAFE_THRESHOLD = 0.1; // 熔断阈值：低于这个分数的绝对不要，太离谱了
+    @Value("${baidu.ai.api-key}")
+    private String apiKey;
 
-    private final AipImageClassify client;
+    @Value("${baidu.ai.secret-key}")
+    private String secretKey;
 
-    public AIService() {
-        client = new AipImageClassify(APP_ID, API_KEY, SECRET_KEY);
-        client.setConnectionTimeoutInMillis(2000);
-        client.setSocketTimeoutInMillis(60000);
-    }
+    private AipImageClassify client;
+
+    // 阈值定义
+    private static final double STRICT_THRESHOLD = 0.4;
 
     /**
-     * 内部简单类，用于暂存 AI 返回的原始数据方便排序和筛选
+     * 【核心修复】
+     * 绝对不要在 public AIService() { ... } 构造函数里初始化 client！
+     * 必须用 @PostConstruct，确保变量注入后再执行。
      */
-    private static class TagCandidate {
-        String keyword;
-        double score;
+    @PostConstruct
+    public void init() {
+        // 打印日志验证是否读取到 (只显示前4位，防止泄露)
+        System.out.println("========== 百度AI 初始化检查 ==========");
+        System.out.println("AppID: " + appId);
+        System.out.println("API Key: " + (apiKey != null ? apiKey.substring(0, 4) + "***" : "NULL"));
 
-        public TagCandidate(String keyword, double score) {
-            this.keyword = keyword;
-            this.score = score;
+        if (apiKey == null || secretKey == null) {
+            System.err.println("❌ 严重错误：Key 为 NULL，请检查 application.yml");
+            return;
         }
+
+        // 初始化客户端
+        client = new AipImageClassify(appId, apiKey, secretKey);
+        client.setConnectionTimeoutInMillis(2000);
+        client.setSocketTimeoutInMillis(60000);
+        System.out.println("✅ 百度AI 客户端初始化成功！");
+        System.out.println("=======================================");
     }
 
-    // 替换 detectImageTags 方法
     public List<String> detectImageTags(String localFilePath) {
         List<String> finalTags = new ArrayList<>();
+
+        // 防御性编程：万一初始化失败，防止空指针
+        if (client == null) {
+            System.err.println("❌ 错误：百度AI客户端未正确初始化");
+            return finalTags;
+        }
+
         try {
             JSONObject res = client.advancedGeneral(localFilePath, new HashMap<>());
 
-            // 【关键】打印日志，看看百度到底返给你什么了！
-            System.out.println("----- 百度AI 原始返回 -----");
-            if (res.has("result")) {
-                JSONArray list = res.getJSONArray("result");
-                for(int i=0; i<list.length(); i++){
-                    JSONObject item = list.getJSONObject(i);
-                    System.out.println(item.getString("keyword") + " : " + item.getDouble("score"));
-                }
+            // 检查是否有错误码
+            if (res.has("error_code")) {
+                System.err.println("❌ 百度API报错: " + res.toString());
+                return finalTags;
             }
-            System.out.println("-------------------------");
 
+            // 解析结果
             if (res.has("result")) {
                 JSONArray resultArray = res.getJSONArray("result");
                 List<JSONObject> candidates = new ArrayList<>();
                 int limit = Math.min(resultArray.length(), 5);
 
-                // 1. 提取前5个
                 for (int i = 0; i < limit; i++) {
                     candidates.add(resultArray.getJSONObject(i));
                 }
 
-                // 2. 策略A：优先找高置信度 (> 0.4)
+                // 策略A：优先找高置信度
                 for (JSONObject item : candidates) {
-                    if (item.getDouble("score") > 0.4) {
+                    if (item.getDouble("score") > STRICT_THRESHOLD) {
                         finalTags.add(item.getString("keyword"));
                     }
                 }
 
-                // 3. 策略B (保底)：如果策略A一个都没找到，就强制取前2个 (只要 > 0.1)
+                // 策略B (保底)
                 if (finalTags.isEmpty() && !candidates.isEmpty()) {
                     System.out.println("触发保底策略...");
                     for (int i = 0; i < Math.min(candidates.size(), 2); i++) {
