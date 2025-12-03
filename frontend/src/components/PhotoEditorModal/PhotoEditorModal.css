@@ -324,3 +324,13 @@
     color: #444;
     font-style: italic;
 }
+
+.ant-message {
+    z-index: 30000 !important;
+}
+
+/* 如果你也使用了 Modal.confirm 等弹窗，可能也需要提高 */
+.ant-modal-mask,
+.ant-modal-wrap {
+    z-index: 20000 !important;
+}
