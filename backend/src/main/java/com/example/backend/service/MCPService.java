@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
 public class MCPService {
 
     // ⚠️ 建议将 Key 移至 application.yml 配置中
-    private static final String API_KEY = "sk-6bbf5eaf65c84bfe85556832f339c71c";
+    @Value("${aliyun.dashscope.api-key}")
+    private String API_KEY;
 
     @Autowired
     private ImageInfoMapper imageInfoMapper;

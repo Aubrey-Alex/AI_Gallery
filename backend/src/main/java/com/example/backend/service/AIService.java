@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.baidu.aip.imageclassify.AipImageClassify;
+import org.springframework.beans.factory.annotation.Value;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,14 @@ import java.util.List;
 @Service
 public class AIService {
 
-    public static final String APP_ID = "121117508";
-    public static final String API_KEY = "wRdtMM5oyZA7ElnCXTd8WR6N";
-    public static final String SECRET_KEY = "pPvK7TUIAyQ2rQza8Bgxin9lHfibDDfj";
+    @Value("${baidu.ai.app-id}")
+    private String APP_ID;
+
+    @Value("${baidu.ai.api-key}")
+    private String API_KEY;
+
+    @Value("${baidu.ai.secret-key}")
+    private String SECRET_KEY;
 
     // 定义两个阈值
     private static final double STRICT_THRESHOLD = 0.4; // 严格阈值：用于常规筛选

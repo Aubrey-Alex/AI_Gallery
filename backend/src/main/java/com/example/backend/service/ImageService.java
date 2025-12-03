@@ -240,7 +240,8 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
      * 文档: https://lbs.amap.com/api/webservice/guide/api/georegeo
      */
 
-    private static final String AMAP_KEY = "1eb04750b7f55f92385ded2cf143ea70";
+    @Value("${amap.web-service.key}")
+    private String AMAP_KEY;
 
     private String getGlobalLocation(double lat, double lon) {
         try {
