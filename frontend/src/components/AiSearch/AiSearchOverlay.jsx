@@ -3,20 +3,49 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from '../../utils/request';
 import './AiSearchOverlay.css';
 
-// 接收 onImageClick 属性
 const AiSearchOverlay = ({ onImageClick }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
-    const [status, setStatus] = useState('idle'); // idle, searching, complete
+    const [status, setStatus] = useState('idle');
     const [loadingText, setLoadingText] = useState('');
     const [results, setResults] = useState([]);
     const [confidence, setConfidence] = useState(0.65);
     const inputRef = useRef(null);
 
-    // 每次打开自动聚焦
+    // 定义文案数组（提取出来方便计算时间）
+    const LOADING_MESSAGES = [
+        "正在解析自然语言指令...",
+        "提取语义特征向量...",
+        "扫描神经网络节点...",
+        "计算多维空间距离...",
+        "正在建立神经连接...",
+        "过滤低置信度数据...",
+        "正在渲染全息投影..."
+    ];
+    // 定义每句话的停留时间 (毫秒)
+    const MSG_INTERVAL = 300;
+
     useEffect(() => {
         if (isOpen && inputRef.current) inputRef.current.focus();
     }, [isOpen]);
+
+    // 动画定时器逻辑
+    useEffect(() => {
+        let interval;
+        if (status === 'searching') {
+            let i = 0;
+            setLoadingText(LOADING_MESSAGES[0]);
+
+            interval = setInterval(() => {
+                i++;
+                // 如果播放完了最后一句，就停在最后一句，不要重头循环，显得更智能
+                if (i < LOADING_MESSAGES.length) {
+                    setLoadingText(LOADING_MESSAGES[i]);
+                }
+            }, MSG_INTERVAL);
+        }
+        return () => clearInterval(interval);
+    }, [status]);
 
     const toggleOpen = () => {
         setIsOpen(!isOpen);
@@ -36,22 +65,29 @@ const AiSearchOverlay = ({ onImageClick }) => {
     const handleSearch = async (e) => {
         if (e.key === 'Enter' && query.trim()) {
             setStatus('searching');
-            setLoadingText('正在建立神经连接...');
-            try {
-                // 模拟 API (替换为你真实的 API)
-                const res = await axios.post('/api/mcp/search', { query });
 
-                // 模拟延迟
-                await new Promise(r => setTimeout(r, 800));
+            try {
+                // 【核心修复】：计算动画需要的最小总时长
+                // 比如 7句话 * 300ms = 2100ms
+                const minAnimationTime = LOADING_MESSAGES.length * MSG_INTERVAL;
+
+                // 使用 Promise.all 并行执行：
+                // 1. 发送真实请求
+                // 2. 等待动画播放完毕 (minDelay)
+                // 只有两者都完成了，才会继续往下走
+                const [res, _] = await Promise.all([
+                    axios.post('/api/mcp/search', { query }),
+                    new Promise(resolve => setTimeout(resolve, minAnimationTime))
+                ]);
 
                 if (res.data && res.data.code === 200) {
-                    // 确保 score 是数字
                     const data = res.data.data.map(item => ({ ...item, score: parseFloat(item.score) }));
                     setResults(data);
                 } else {
                     setResults([]);
                 }
                 setStatus('complete');
+
             } catch (error) {
                 console.error(error);
                 setLoadingText('连接中断');
@@ -79,9 +115,8 @@ const AiSearchOverlay = ({ onImageClick }) => {
                 <div className="ai-overlay">
                     <div className="ai-backdrop" onClick={toggleOpen}></div>
                     <div className="ai-content">
-                        {/* --- 修改开始：头部结构重构 --- */}
+                        {/* 头部 */}
                         <div className="ai-header">
-                            {/* 新增一个包装容器 ai-search-bar */}
                             <div className="ai-search-bar">
                                 <div className="ai-icon-pulse">
                                     <i className="ri-search-2-line"></i>
@@ -101,8 +136,6 @@ const AiSearchOverlay = ({ onImageClick }) => {
                                     </button>
                                 )}
                             </div>
-
-                            {/* 关闭按钮独立在搜索条之外，作为大退出的操作 */}
                             <button className="ai-close-main" onClick={toggleOpen}>
                                 <i className="ri-close-line"></i>
                             </button>
@@ -113,7 +146,8 @@ const AiSearchOverlay = ({ onImageClick }) => {
                             {status === 'searching' && (
                                 <div className="ai-loading-container">
                                     <i className="ri-brain-line" style={{ fontSize: '4rem', marginBottom: '10px' }}></i>
-                                    <p className="terminal-text">{loadingText}<span className="cursor">_</span></p>
+                                    {/* 【核心修复】：移除了这里的 _，只保留光标动画 */}
+                                    <p className="terminal-text">{loadingText}</p>
                                 </div>
                             )}
 
@@ -141,27 +175,12 @@ const AiSearchOverlay = ({ onImageClick }) => {
                                                 key={img.id}
                                                 className="ai-card"
                                                 onClick={() => {
-                                                    // --- 核心逻辑：区分原图与缩略图 ---
-
-                                                    // 1. 寻找最高清的路径
-                                                    // 优先级：url (原图) > filePath (原图) > thumbnail (缩略图保底)
-                                                    // 注意：通常 AI 接口返回的 img 对象里，url 是原图，thumbnail 是缩略图
                                                     const originalPath = img.url || img.filePath || img.thumbnail;
-
-                                                    // 2. 构造传给编辑器的对象
                                                     const imgForEditor = {
                                                         ...img,
-                                                        // 【强制】让编辑器读取高清路径
-                                                        // PhotoEditorModal 读取的是 .filePath 字段，所以我们把高清路径赋值给它
                                                         filePath: originalPath,
-
-                                                        // 顺便更新 url 字段，以防万一
                                                         url: getFullUrl(originalPath)
                                                     };
-
-                                                    console.log("打开编辑器，使用原图路径:", originalPath); // 方便你调试确认
-
-                                                    // 3. 传递给 Home 打开编辑器
                                                     onImageClick(imgForEditor);
                                                 }}
                                             >
