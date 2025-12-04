@@ -35,7 +35,7 @@ const GridView = ({
                         </div>
 
                         <img
-                            src={`http://localhost:8080${img.thumbnailPath}`}
+                            src={img.thumbnailPath}
                             className="card-img"
                             alt={img.fileName}
                             loading="lazy"

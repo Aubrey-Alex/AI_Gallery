@@ -15,7 +15,7 @@ import womanImg from '../../assets/images/welcome/woman.jpg';
 import lakeImg from '../../assets/images/welcome/lake.jpg';
 
 // 配置 axios 基础 URL
-axios.defaults.baseURL = 'http://localhost:8080';
+axios.defaults.baseURL = '';
 // axios.defaults.baseURL = 'http://10.162.127.134:8080';
 
 const Login = () => {

@@ -41,7 +41,7 @@ const TimelineView = ({
                             </div>
 
                             <img
-                                src={`http://localhost:8080${img.thumbnailPath}`}
+                                src={img.thumbnailPath}
                                 className="masonry-img"
                                 alt="timeline item"
                             />

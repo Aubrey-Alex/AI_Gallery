@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 1. 设置 axios 基础 URL (防止重复设置)
-axios.defaults.baseURL = 'http://localhost:8080';
+axios.defaults.baseURL = '';
 
 // 2. 设置请求拦截器
 axios.interceptors.request.use(

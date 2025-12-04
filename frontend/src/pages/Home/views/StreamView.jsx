@@ -118,7 +118,7 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
                             }}
                         >
                             <img
-                                src={`http://localhost:8080${img.thumbnailPath}`}
+                                src={img.thumbnailPath}
                                 alt={img.fileName}
                                 loading="lazy"
                             />

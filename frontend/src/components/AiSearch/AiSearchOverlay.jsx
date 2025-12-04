@@ -59,7 +59,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
     const getFullUrl = (path) => {
         if (!path) return '';
         if (path.startsWith('http')) return path;
-        return `http://localhost:8080${path}`;
+        return `${path}`;
     };
 
     const handleSearch = async (e) => {
@@ -186,7 +186,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
                                             >
                                                 <div className="score-badge">{(img.score * 100).toFixed(0)}%</div>
                                                 <img
-                                                    src={`http://localhost:8080${img.thumbnail || img.url}`}
+                                                    src={img.thumbnail || img.url}
                                                     loading="lazy"
                                                     alt=""
                                                 />

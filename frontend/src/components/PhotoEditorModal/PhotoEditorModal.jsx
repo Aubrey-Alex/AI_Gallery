@@ -8,7 +8,7 @@ import axios from '../../utils/request';
 
 const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
     // 从 imageObj 中提取 src
-    const imageSrc = imageObj ? `http://localhost:8080${imageObj.filePath}` : '';
+    const imageSrc = imageObj ? `${imageObj.filePath}` : '';
     // 提取 metadata (防止为空)
     const meta = imageObj?.metadata || {};
 
