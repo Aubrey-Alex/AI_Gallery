@@ -274,7 +274,8 @@
 }
 
 /* =========================================
-   Login 移动端适配 - 完美复刻 Welcome 布局 + 居中悬浮卡片
+   Login 移动端适配 - 修复版
+   目标：将背景图下沉到底部，避免干扰中间的登录框
    ========================================= */
 @media (max-width: 768px) {
 
@@ -286,13 +287,13 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        /* 垂直居中 (为了放登录框) */
+        /* 垂直居中登录框 */
         align-items: center;
         /* 水平居中 */
         overflow: hidden;
     }
 
-    /* 2. 背景层：作为“舞台”，铺满全屏 */
+    /* 2. 背景层：全屏铺满 */
     .login-container .background-container {
         position: absolute;
         top: 0;
@@ -300,42 +301,32 @@
         width: 100%;
         height: 100%;
         z-index: 0;
-
-        /* 【核心差异】Login 页面的背景需要模糊 */
-        /* 适当减小 brightness，让白色登录框更突出 */
-        filter: blur(8px) brightness(0.5);
+        /* 增加模糊度，降低亮度，确保登录框文字清晰 */
+        filter: blur(10px) brightness(0.6);
         pointer-events: none;
-        /* 背景不响应点击 */
     }
 
-    /* --- 3. 文字与图片布局 (完全照搬 Welcome 方案 F 的参数) --- */
-
-    /* 文字：固定在上方 */
+    /* 3. 文字：固定在上方，避免被图片干扰 */
     .login-container .hero-title {
         position: absolute;
         display: block;
-        /* 确保显示 */
-        top: 10%;
-        /* 距离顶部 10% */
+        top: 15%;
+        /* 稍微靠上一点 */
         left: 0;
         width: 100%;
         text-align: center;
-
-        /* 字体参数复刻 Welcome */
-        font-size: 12vw;
+        font-size: 10vw;
+        /* 稍微调小一点，太大会抢戏 */
         line-height: 1.1;
         font-weight: 900;
         letter-spacing: -1px;
-
-        /* 【关键修复】提高不透明度，防止被模糊滤镜吃掉 */
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(255, 255, 255, 0.5);
+        /* 降低透明度，作为纹理背景 */
         z-index: 10;
-
-        /* 稍微加点阴影，防止背景太花看不清 */
         text-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
     }
 
-    /* 图片通用样式：使用 % 定位 */
+    /* 4. 图片通用样式 */
     .login-container .floating-card {
         display: block !important;
         position: absolute !important;
@@ -345,95 +336,116 @@
         transition: none;
     }
 
-    /* --- 这里的参数与 Welcome 完全一致，保证背景视觉连贯 --- */
+    /* --- 【核心修复】将所有图片位置改为 bottom 定位 --- */
+    /* 这样它们就会乖乖待在屏幕下半部分，不会挡住中间的登录框 */
 
-    /* 1. C位主图 */
+    /* 1. C位主图 (穿裙子的女孩) */
     .login-container .card-main {
         width: 45%;
         height: auto;
         aspect-ratio: 3/4;
         left: 50%;
+
+        /* 旧代码是 top: 25% -> 导致在屏幕上方 */
         top: auto;
         bottom: 15%;
-        /* 放在底部 */
-        transform: translateX(-50%) rotate(-3deg);
+        /* 【改动】沉底 */
+
+        margin-left: -22.5%;
+        transform: rotate(-3deg);
         z-index: 20;
-        filter: brightness(1.1);
-        /* 稍微提亮一点主图 */
+        filter: brightness(1);
+        /* 登录页背景可以稍微暗一点，或者保持原样 */
     }
 
-    /* 2. 右上风景 */
+    /* 2. 右上风景 (Bird) - 实际上变成“右中” */
     .login-container .card-bg-1 {
         width: 35%;
         height: auto;
         aspect-ratio: 3/4;
         right: -5%;
-        top: 20%;
+
+        top: auto;
+        bottom: 15%;
+        /* 【改动】沉底 */
+
         transform: rotate(8deg);
         z-index: 15;
         opacity: 0.9;
     }
 
-    /* 3. 左下山景 */
+    /* 3. 左下山景 (Mountain) */
     .login-container .card-bg-2 {
         width: 35%;
         height: auto;
         aspect-ratio: 3/4;
         left: -5%;
-        bottom: 15%;
+
         top: auto;
+        bottom: 3%;
+        /* 【改动】沉底 */
+
         transform: rotate(-10deg);
         z-index: 15;
         opacity: 0.9;
     }
 
-    /* 4. 顶部深层 (左上) */
+    /* 4. 顶部深层 (Man) -> 变成“左中” */
     .login-container .card-deep-1 {
         width: 25%;
         height: auto;
         aspect-ratio: 3/4;
         left: 5%;
-        top: 12%;
+
+        top: auto;
+        bottom: 28%;
+        /* 【改动】沉底 */
+
         transform: rotate(-15deg);
         z-index: 10;
         opacity: 0.6;
     }
 
-    /* 5. 右侧人像 (右中) */
+    /* 5. 右侧人像 (Woman) */
     .login-container .card-deep-2 {
         width: 30%;
         height: auto;
         aspect-ratio: 3/4;
         right: -8%;
-        top: 50%;
+
+        top: auto;
+        bottom: 5%;
+        /* 【改动】沉底 */
+
         transform: rotate(12deg);
         z-index: 10;
         opacity: 0.6;
     }
 
-    /* 6. 底部风景 (正下) */
+    /* 6. 底部风景 (Lake) */
     .login-container .card-deep-3 {
         width: 40%;
         height: auto;
         aspect-ratio: 4/3;
         left: 30%;
-        bottom: -5%;
+
         top: auto;
+        bottom: 4%;
+        /* 【改动】沉底 */
+
         transform: rotate(5deg);
         z-index: 5;
         opacity: 0.4;
     }
 
 
-    /* --- 4. 登录卡片：居中悬浮，压在背景之上 --- */
+    /* --- 5. 登录卡片：悬浮在所有内容之上 --- */
 
     .login-container .login-overlay {
         position: relative;
-        /* 改为 relative 让 flex 生效 */
         width: 100%;
         height: 100%;
         background: transparent;
-        /* 去掉额外的遮罩，靠 background-container 的 brightness 即可 */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -443,26 +455,28 @@
 
     .login-container .login-card {
         width: 85%;
-        /* 宽度适配手机 */
         max-width: 360px;
         padding: 2rem 1.5rem;
 
-        /* 样式微调 */
-        background: rgba(20, 20, 20, 0.85);
-        /* 稍微透一点点 */
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        /* 稍微调黑一点背景，增加对比度 */
+        background: rgba(15, 15, 15, 0.85);
+        backdrop-filter: blur(15px);
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+
+        /* 确保卡片不会被底部图片顶上去 */
         margin-top: 0;
-        /* 居中 */
     }
 
     .login-container .modal-logo {
         font-size: 1.4rem;
+        margin-bottom: 1.5rem;
     }
 
-    /* 防止输入框在手机上字体太小导致缩放 */
     .login-container .input-field {
         font-size: 16px;
+        /* 防止iOS缩放 */
+        padding: 0.8rem;
     }
 }

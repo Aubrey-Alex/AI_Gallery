@@ -303,12 +303,12 @@
 
     .welcome-page .text-container {
         position: absolute;
-        top: 30%;
+        top: 25%;
         left: 50%;
         transform: translateX(-50%);
         width: 100%;
         padding: 0 1rem;
-        margin-top: -10rem;
+        margin-top: -9rem;
         /* 稍微靠上 */
 
         /* 弹性布局垂直居中 */
@@ -321,7 +321,7 @@
 
     /* 字体整体等比缩小 */
     .welcome-page .hero-title {
-        font-size: 12vw;
+        font-size: 11.5vw;
         /* 使用 vw 单位，随屏幕宽度自动缩放！ */
         line-height: 1.1;
         margin-bottom: 0.5rem;
@@ -351,7 +351,7 @@
         aspect-ratio: 1 / 1;
         margin-top: auto;
         /* 推到底部 */
-        margin-bottom: -10%;
+        margin-bottom: 0;
         /* 稍微藏一点到底下去，增加纵深感 */
     }
 
@@ -375,7 +375,7 @@
         height: auto;
         aspect-ratio: 3/4;
         left: 50%;
-        top: 40%;
+        top: 25%;
         margin-left: -22.5%;
         /* width的一半 */
         margin-top: -30%;
@@ -393,7 +393,7 @@
         aspect-ratio: 3/4;
         right: -5%;
         /* 稍微以此为基准 */
-        top: 10%;
+        top: 5%;
         transform: rotate(8deg);
         z-index: 15;
         opacity: 0.9;
@@ -418,7 +418,7 @@
         width: 25%;
         height: auto;
         aspect-ratio: 3/4;
-        left: 5%;
+        left: 2%;
         top: 0%;
         transform: rotate(-15deg);
         z-index: 10;
@@ -444,7 +444,7 @@
         aspect-ratio: 4/3;
         /* 横构图 */
         left: 30%;
-        bottom: -5%;
+        bottom: 8%;
         transform: rotate(5deg);
         z-index: 5;
         opacity: 0.4;
