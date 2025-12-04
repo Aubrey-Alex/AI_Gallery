@@ -45,6 +45,8 @@ const Home = () => {
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
     const [inputTags, setInputTags] = useState([]);
 
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     // --- 初始化 ---
     useEffect(() => {
         const storedUser = localStorage.getItem('userInfo');
@@ -293,14 +295,28 @@ const Home = () => {
 
     return (
         <div className="home-container">
-            <Sidebar
-                viewMode={viewMode}
-                showingFavorites={showingFavorites}
-                timelineTitle={timelineTitle}
-                tags={tags}
-                onMenuClick={handleMenuClick}
-                onTagClick={handleTagClick}
-            />
+            <div className={`sidebar-wrapper ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+                <Sidebar
+                    /* 现有 props 保持不变 */
+                    viewMode={viewMode}
+                    showingFavorites={showingFavorites}
+                    timelineTitle={timelineTitle}
+                    tags={tags}
+                    onMenuClick={(type) => {
+                        handleMenuClick(type);
+                        setIsMobileMenuOpen(false); // 手机端点击菜单后自动收起
+                    }}
+                    onTagClick={(tag) => {
+                        handleTagClick(tag);
+                        setIsMobileMenuOpen(false); // 手机端点击标签后自动收起
+                    }}
+                />
+                {/* 遮罩层：点击半透明背景关闭菜单 */}
+                <div
+                    className="mobile-sidebar-overlay"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                ></div>
+            </div>
 
             <main className="main-content">
                 <TopBar
@@ -310,6 +326,7 @@ const Home = () => {
                     onViewChange={setViewMode}
                     onUploadClick={() => setIsUploadModalOpen(true)}
                     onLogout={handleLogout}
+                    onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
                 />
 
                 <div className={`gallery-viewport mode-${viewMode}`}>

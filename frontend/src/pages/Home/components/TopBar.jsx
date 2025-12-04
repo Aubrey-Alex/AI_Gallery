@@ -6,7 +6,8 @@ const TopBar = ({
     onSearch,
     onViewChange,
     onUploadClick,
-    onLogout
+    onLogout,
+    onOpenMobileMenu
 }) => {
     const searchInputRef = useRef(null);
 
@@ -17,6 +18,9 @@ const TopBar = ({
 
     return (
         <header className="top-bar">
+            <div className="mobile-menu-btn" onClick={onOpenMobileMenu}>
+                <i className="ri-menu-line"></i>
+            </div>
             <div className="search-container">
                 <input
                     ref={searchInputRef}
@@ -52,7 +56,7 @@ const TopBar = ({
                 </div>
 
                 <button className="upload-btn" onClick={onUploadClick}>
-                    <i className="ri-upload-cloud-2-line"></i>Upload
+                    <i className="ri-upload-cloud-2-line"></i><span className="btn-text">Upload</span>
                 </button>
 
                 <div

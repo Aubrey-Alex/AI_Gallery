@@ -594,3 +594,270 @@
         transform: scale(1);
     }
 }
+
+/* =========================================
+   Home 移动端适配 (把 App 变身)
+   ========================================= */
+
+/* 1. 增加汉堡菜单按钮 (默认隐藏，手机显示) */
+.mobile-menu-btn {
+    display: none;
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* 2. 侧边栏遮罩层 (默认隐藏) */
+.mobile-sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+/* =========================================
+   Home 移动端适配 (功能全家桶版)
+   布局：[菜单] [搜索(压缩)] [视图] [上传] [用户]
+   ========================================= */
+/* =========================================
+   Home 移动端适配 (JSX 修正版 - 完美居中)
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* 1. 顶部栏布局 */
+    .top-bar {
+        height: 60px;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        background: rgba(5, 5, 5, 0.98);
+    }
+
+    /* 2. 菜单按钮 */
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: #fff;
+        width: 30px;
+        flex-shrink: 0;
+    }
+
+    /* 3. 搜索框 */
+    .search-container {
+        flex: 1;
+        min-width: 0;
+        width: auto !important;
+        margin: 0 4px;
+    }
+
+    .search-input {
+        width: 100%;
+        height: 32px;
+        border-radius: 50px;
+        padding: 0 28px 0 12px;
+        font-size: 0.8rem;
+        background: #1A1A1A;
+        border: 1px solid #333;
+        color: #ccc;
+    }
+
+    .search-icon {
+        right: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* 4. 右侧操作区 */
+    .top-actions {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+
+    /* 视图切换 */
+    .view-toggles {
+        display: flex !important;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2px;
+        border-radius: 6px;
+    }
+
+    .view-btn {
+        padding: 4px;
+        font-size: 1rem;
+    }
+
+    /* --- 【Upload 按钮完美修复】 --- */
+    .upload-btn {
+        width: 34px !important;
+        height: 34px !important;
+        padding: 0 !important;
+        border-radius: 50%;
+        min-width: 34px;
+
+        /* 这里的 Flex 居中现在会完美生效，因为没有文字干扰了 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        background: linear-gradient(135deg, #FF5722, #F44336);
+        box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
+        border: none;
+    }
+
+    .upload-btn i {
+        margin: 0;
+        font-size: 1.2rem;
+        /* 图标大小 */
+        color: white;
+        line-height: 1;
+        /* 防止行高撑开 */
+    }
+
+    /* ★★★ 直接隐藏文字 span，不影响布局 ★★★ */
+    .upload-btn .btn-text {
+        display: none !important;
+    }
+
+    /* 你的 JSX 里是 <span>Hello,</span> 和 <span>Username</span> 
+       所以 .upload-btn span 可能会误伤，必须用具体的类名 .btn-text (上面已加) */
+
+
+    /* --- 用户/退出按钮 (炫酷图标版) --- */
+    .user-greeting-wrapper {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+
+        width: 34px;
+        height: 34px;
+        padding: 0;
+
+        /* 磨砂玻璃效果，区别于搜索框 */
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        /* 边框亮一点 */
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    /* 隐藏原来的文字 */
+    .greeting-text,
+    .username-text {
+        display: none !important;
+    }
+
+    /* 注入 User 图标 (白色) */
+    .user-greeting-wrapper::after {
+        content: "";
+        display: block;
+        width: 16px;
+        height: 16px;
+        background-color: #E0F7FA;
+        /* 使用 CSS Mask 绘制一个小人图标 */
+        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22H4ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13Z"/></svg>') no-repeat center / contain;
+        -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22H4ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13Z"/></svg>') no-repeat center / contain;
+    }
+
+    /* 剩下的保持不变 */
+    .home-container {
+        flex-direction: column;
+    }
+
+    .sidebar-wrapper .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        width: 260px;
+        z-index: 100;
+        transition: left 0.3s;
+    }
+
+    .sidebar-wrapper.mobile-open .sidebar {
+        left: 0;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .sidebar-wrapper.mobile-open .mobile-sidebar-overlay {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .gallery-viewport.mode-grid {
+        padding: 10px;
+    }
+
+    .grid-layout {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .card-item {
+        height: 200px;
+    }
+
+    .card-overlay {
+        padding: 10px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        opacity: 1;
+    }
+
+    .card-info h4 {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ai-tag {
+        display: none;
+    }
+
+    .stream-view-container {
+        touch-action: pan-y;
+    }
+
+    .stream-slide {
+        width: 240px;
+        height: 360px;
+        -webkit-box-reflect: below 5px linear-gradient(transparent 70%, rgba(0, 0, 0, 0.3));
+    }
+
+    .ant-modal {
+        max-width: 100vw;
+        margin: 0;
+        top: 0;
+        padding: 0;
+    }
+
+    .ant-modal-content {
+        height: 100vh;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ant-modal-body {
+        flex: 1;
+        overflow-y: auto;
+    }
+}
