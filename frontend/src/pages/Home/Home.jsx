@@ -136,11 +136,31 @@ const Home = () => {
     };
 
     const handleCardClick = (id) => {
+        // 1. 先清除右键菜单（如果有）
         if (contextMenu) setContextMenu(null);
-        setSelectedIds(prev => {
-            if (prev.includes(id)) return prev.filter(item => item !== id);
-            return [...prev, id];
-        });
+
+        // 2. 判断是否是手机端 (屏幕宽度小于 768px)
+        const isMobile = window.innerWidth <= 768;
+
+        // 3. 判断当前是否已经是“多选模式”
+        // (如果已经有选中的图片，那么无论手机还是电脑，点击都应该是“加选/减选”)
+        const isMultiSelectMode = selectedIds.length > 0;
+
+        if (isMobile && !isMultiSelectMode) {
+            // 【手机端逻辑】且【当前没在多选】：
+            // 单击直接打开大图预览！
+            const targetImg = images.find(i => i.id === id);
+            if (targetImg) {
+                handleOpenEditor(targetImg);
+            }
+        } else {
+            // 【电脑端逻辑】或者【手机端正在多选中】：
+            // 保持原有的“选中/取消选中”逻辑
+            setSelectedIds(prev => {
+                if (prev.includes(id)) return prev.filter(item => item !== id);
+                return [...prev, id];
+            });
+        }
     };
 
     const handleOpenEditor = (targetImg) => {

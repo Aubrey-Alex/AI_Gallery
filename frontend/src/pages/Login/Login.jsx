@@ -16,6 +16,7 @@ import lakeImg from '../../assets/images/welcome/lake.jpg';
 
 // 配置 axios 基础 URL
 axios.defaults.baseURL = 'http://localhost:8080';
+// axios.defaults.baseURL = 'http://10.162.127.134:8080';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -47,6 +48,7 @@ const Login = () => {
             return;
         }
         try {
+            // alert(`准备发送请求到: ${axios.defaults.baseURL}/api/user/login`);
             const res = await axios.post('/api/user/login', {
                 username, password
             });

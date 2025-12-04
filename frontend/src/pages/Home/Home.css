@@ -1,5 +1,23 @@
 /* src/pages/Home/Home.css */
 
+/* --- 全局重置：去除手机端点击蓝框和高亮 --- */
+* {
+    /* 核心代码：把点击高亮颜色设为透明 */
+    -webkit-tap-highlight-color: transparent;
+
+    /* 可选：去掉点击时的默认黑色/蓝色轮廓线 */
+    outline: none;
+}
+
+/* 针对按钮和输入框的额外保险 */
+button,
+input,
+textarea,
+div {
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
 /* --- 基础容器设置 --- */
 .home-container {
     display: flex;
