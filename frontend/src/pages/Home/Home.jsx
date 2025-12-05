@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/request';
 import { message, Modal, Select } from 'antd';
+import { getPhotoDate } from '../../utils/processPhotoDate';
 
 // 引入样式
 import './Home.css';
@@ -235,6 +236,23 @@ const Home = () => {
                 await Promise.all(batch.map(async (file) => {
                     const formData = new FormData();
                     formData.append('file', file);
+                    // ==================================================
+                    // 【核心接入点】在此处调用 getPhotoDate
+                    // ==================================================
+                    try {
+                        // 1. 智能解析真实时间（已包含未来时间防御机制）
+                        const realDate = await getPhotoDate(file);
+
+                        // 2. 将时间转为时间戳或字符串传给后端
+                        // 建议传时间戳 (Long)，Java 后端好处理
+                        if (realDate) {
+                            formData.append('shootTime', realDate.getTime());
+                        }
+                    } catch (err) {
+                        console.warn('时间解析失败，将使用服务器时间', err);
+                    }
+                    // ==================================================
+
                     try {
                         const res = await axios.post('/api/image/upload', formData);
                         if (res.data.code === 200) successCount++;

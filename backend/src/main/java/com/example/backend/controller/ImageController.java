@@ -39,13 +39,15 @@ public class ImageController {
      * 图片上传接口
      */
     @PostMapping("/upload")
-    public Map<String, Object> upload(@RequestParam("file") MultipartFile file) {
+    public Map<String, Object> upload(@RequestParam("file") MultipartFile file,
+                                      @RequestParam(value = "shootTime", required = false) Long shootTime
+    ) {
         Map<String, Object> result = new HashMap<>();
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long userId = (Long) authentication.getPrincipal();
 
-            ImageInfo imageInfo = imageService.uploadImage(file, userId);
+            ImageInfo imageInfo = imageService.uploadImage(file, userId, shootTime);
 
             result.put("code", 200);
             result.put("msg", "上传成功");

@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -62,10 +63,18 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
     private MCPService mcpService;
 
     /**
-     * 上传图片主逻辑
+     * 上传图片主逻辑 (兼容旧代码重载)
      */
     @Transactional(rollbackFor = Exception.class)
     public ImageInfo uploadImage(MultipartFile file, Long userId) throws IOException {
+        return uploadImage(file, userId, null);
+    }
+
+    /**
+     * 上传图片主逻辑
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ImageInfo uploadImage(MultipartFile file, Long userId, Long frontendShootTime) throws IOException {
         // 1. 准备上传目录
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
         if (!Files.exists(uploadPath)) {
@@ -114,6 +123,29 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         } catch (Exception e) {
             System.err.println("EXIF 提取失败: " + e.getMessage());
         }
+
+        // =========================================================
+        // 【核心逻辑修复】：优先使用前端传来的时间
+        // =========================================================
+        if (frontendShootTime != null && frontendShootTime > 0) {
+            try {
+                // 将时间戳转换为 LocalDateTime
+                LocalDateTime fixedTime = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(frontendShootTime),
+                        ZoneId.systemDefault()
+                );
+                metaInfo.setShootTime(fixedTime);
+                System.out.println("使用前端修正的时间: " + fixedTime);
+            } catch (Exception e) {
+                System.err.println("前端时间转换失败，回退到 EXIF/当前时间");
+            }
+        }
+
+        // 如果 shootTime 还是空的 (既没 EXIF 也没前端传)，兜底为当前时间
+        if (metaInfo.getShootTime() == null) {
+            metaInfo.setShootTime(LocalDateTime.now());
+        }
+        // =========================================================
 
         // 6. 保存 ImageInfo 到数据库
         ImageInfo imageInfo = new ImageInfo();
