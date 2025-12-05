@@ -647,53 +647,62 @@ div {
    布局：[菜单] [搜索(压缩)] [视图] [上传] [用户]
    ========================================= */
 /* =========================================
-   Home 移动端适配 (JSX 修正版 - 完美居中)
+   Home 移动端适配 (加大触控版)
    ========================================= */
 @media (max-width: 768px) {
 
-    /* 1. 顶部栏布局 */
+    /* 1. 顶部栏布局：增高，留足空间 */
     .top-bar {
-        height: 60px;
-        padding: 0 10px;
+        height: 72px;
+        /* 从 60px 改为 72px */
+        padding: 0 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 6px;
+        gap: 8px;
+        /* 增加间距 */
         background: rgba(5, 5, 5, 0.98);
     }
 
-    /* 2. 菜单按钮 */
+    /* 2. 左侧菜单按钮：加大触控区 */
     .mobile-menu-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        font-size: 1.6rem;
+        /* 图标变大 */
         color: #fff;
-        width: 30px;
+        width: 42px;
+        /* 宽度加大 */
+        height: 42px;
+        /* 高度加大 */
         flex-shrink: 0;
     }
 
-    /* 3. 搜索框 */
+    /* 3. 搜索框：限制宽度，防止挤压按钮 */
     .search-container {
         flex: 1;
         min-width: 0;
         width: auto !important;
-        margin: 0 4px;
+        max-width: 180px;
+        /* 【关键】限制最大宽度，给按钮腾地方 */
+        margin: 0 2px;
     }
 
     .search-input {
         width: 100%;
-        height: 32px;
+        height: 38px;
+        /* 输入框也稍微增高，好点 */
         border-radius: 50px;
         padding: 0 28px 0 12px;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         background: #1A1A1A;
         border: 1px solid #333;
         color: #ccc;
     }
 
     .search-icon {
-        right: 8px;
+        right: 10px;
         font-size: 0.9rem;
     }
 
@@ -702,32 +711,35 @@ div {
         flex-shrink: 0;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        /* 按钮之间拉开点距离 */
         margin: 0;
     }
 
-    /* 视图切换 */
+    /* 视图切换按钮组 */
     .view-toggles {
         display: flex !important;
         background: rgba(255, 255, 255, 0.05);
         padding: 2px;
-        border-radius: 6px;
+        border-radius: 8px;
     }
 
     .view-btn {
-        padding: 4px;
-        font-size: 1rem;
+        padding: 8px 10px;
+        /* 【关键】增加内边距，手指更容易点中 */
+        font-size: 1.1rem;
     }
 
-    /* --- 【Upload 按钮完美修复】 --- */
+    /* --- 上传按钮：加大 --- */
     .upload-btn {
-        width: 34px !important;
-        height: 34px !important;
+        width: 40px !important;
+        /* 34px -> 40px */
+        height: 40px !important;
+        /* 34px -> 40px */
         padding: 0 !important;
         border-radius: 50%;
-        min-width: 34px;
+        min-width: 40px;
 
-        /* 这里的 Flex 居中现在会完美生效，因为没有文字干扰了 */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -739,62 +751,53 @@ div {
 
     .upload-btn i {
         margin: 0;
-        font-size: 1.2rem;
-        /* 图标大小 */
+        font-size: 1.3rem;
         color: white;
         line-height: 1;
-        /* 防止行高撑开 */
     }
 
-    /* ★★★ 直接隐藏文字 span，不影响布局 ★★★ */
+    /* 隐藏文字 */
     .upload-btn .btn-text {
         display: none !important;
     }
 
-    /* 你的 JSX 里是 <span>Hello,</span> 和 <span>Username</span> 
-       所以 .upload-btn span 可能会误伤，必须用具体的类名 .btn-text (上面已加) */
-
-
-    /* --- 用户/退出按钮 (炫酷图标版) --- */
+    /* --- 用户头像：加大 --- */
     .user-greeting-wrapper {
         display: flex !important;
         justify-content: center;
         align-items: center;
 
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        /* 34px -> 40px */
+        height: 40px;
+        /* 34px -> 40px */
         padding: 0;
 
-        /* 磨砂玻璃效果，区别于搜索框 */
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-
         border: 1px solid rgba(255, 255, 255, 0.2);
-        /* 边框亮一点 */
         border-radius: 50%;
         cursor: pointer;
     }
 
-    /* 隐藏原来的文字 */
     .greeting-text,
     .username-text {
         display: none !important;
     }
 
-    /* 注入 User 图标 (白色) */
     .user-greeting-wrapper::after {
         content: "";
         display: block;
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        /* 图标也稍微大一点 */
+        height: 20px;
         background-color: #E0F7FA;
-        /* 使用 CSS Mask 绘制一个小人图标 */
         mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22H4ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13Z"/></svg>') no-repeat center / contain;
         -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22H4ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13Z"/></svg>') no-repeat center / contain;
     }
 
-    /* 剩下的保持不变 */
+    /* 以下部分保持不变，负责布局切换 */
     .home-container {
         flex-direction: column;
     }
@@ -841,9 +844,6 @@ div {
 
     .card-info h4 {
         font-size: 0.9rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     .ai-tag {
