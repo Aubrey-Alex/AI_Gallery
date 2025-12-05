@@ -1,6 +1,6 @@
 // src/pages/Home/views/StreamView.jsx
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCreative, Mousewheel, Autoplay } from 'swiper/modules';
 
@@ -9,6 +9,15 @@ import 'swiper/css/effect-creative';
 import './StreamView.css';
 
 const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
+
+    // 【补全这里！！！】你之前漏掉了这几行代码，导致 isMobile 未定义
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // 【核心修改步骤 1】先计算出“原始”的图片列表（不包含为了轮播而复制的）
     // 这个列表用于计算准确的数量
@@ -114,7 +123,10 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
                         <div
                             className="slide-inner"
                             onDoubleClick={() => {
-                                onDoubleClick(img);
+                                // 只有 "不是手机" 时，才允许打开大图
+                                if (!isMobile) {
+                                    onDoubleClick(img);
+                                }
                             }}
                         >
                             <img

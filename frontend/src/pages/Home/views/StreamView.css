@@ -83,3 +83,22 @@
     pointer-events: none;
     z-index: 2;
 }
+
+/* === 移动端性能适配 === */
+@media (max-width: 768px) {
+
+    /* 1. 调整容器内边距，减少留白 */
+    .swiper {
+        padding: 40px 0 !important;
+    }
+
+    /* 2. 核心尺寸适配 */
+    .stream-slide {
+        /* 电脑是 320x480，手机缩小为 240x360 */
+        width: 240px !important;
+        height: 360px !important;
+
+        /* 【性能优化】手机端倒影缩短一点，减少 GPU 压力 */
+        -webkit-box-reflect: below 5px linear-gradient(transparent 70%, rgba(0, 0, 0, 0.3));
+    }
+}
