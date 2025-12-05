@@ -140,8 +140,8 @@ const Home = () => {
         // 1. 先清除右键菜单（如果有）
         if (contextMenu) setContextMenu(null);
 
-        // 2. 判断是否是手机端 (屏幕宽度小于 768px)
-        const isMobile = window.innerWidth <= 768;
+        // 2. 判断是否是手机端 (屏幕宽度小于 1024px)
+        const isMobile = window.innerWidth <= 1024;
 
         // 3. 判断当前是否已经是“多选模式”
         // (如果已经有选中的图片，那么无论手机还是电脑，点击都应该是“加选/减选”)

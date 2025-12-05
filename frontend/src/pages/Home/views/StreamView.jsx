@@ -11,10 +11,10 @@ import './StreamView.css';
 const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
 
     // 【补全这里！！！】你之前漏掉了这几行代码，导致 isMobile 未定义
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);

@@ -85,7 +85,7 @@
 }
 
 /* === 移动端性能适配 === */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
     /* 1. 调整容器内边距，减少留白 */
     .swiper {
