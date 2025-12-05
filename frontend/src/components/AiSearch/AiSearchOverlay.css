@@ -504,3 +504,118 @@
     margin-bottom: 15px;
     display: block;
 }
+
+/* src/components/AiSearch/AiSearchOverlay.css */
+
+/* ... (保留上面的所有代码) ... */
+
+/* =========================================
+   AI Search 移动端适配 (App 沉浸体验版)
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* 1. 容器全屏化：手机上不需要“悬浮弹窗”感，要的是“新页面”感 */
+    .ai-content {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100%;
+        border-radius: 0;
+        /* 去掉圆角 */
+        border: none;
+        /* 去掉边框 */
+        background: #0a0f14;
+        /* 纯色背景，防止透明度导致性能问题 */
+    }
+
+    .ai-overlay {
+        z-index: 9999;
+        /* 确保层级最高，盖住所有东西 */
+    }
+
+    /* 2. 头部调整：更紧凑，留出空间给内容 */
+    .ai-header {
+        height: 70px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    /* 搜索条适配 */
+    .ai-search-bar {
+        height: 44px;
+        /* 手机标准触控高度 */
+        padding: 0 12px;
+    }
+
+    .ai-input {
+        font-size: 0.95rem;
+        /* 防止 iOS 自动放大 */
+    }
+
+    .ai-icon-pulse {
+        font-size: 1.1rem;
+        margin-right: 8px;
+    }
+
+    /* 关闭按钮稍微大一点，方便手指点 */
+    .ai-close-main {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* 3. 网格布局：强制双列 (2列) */
+    .ai-grid {
+        /* 原来的 180px 在手机上太宽了，会导致单列 */
+        /* 改为 repeat(2, 1fr) 强制两列 */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        /* 间距缩小 */
+        padding-bottom: 80px;
+        /* 底部留白，防止被虚拟 Home 条遮挡 */
+    }
+
+    /* 4. 调整加载动画区域 */
+    .ai-loading-container {
+        padding: 15px;
+    }
+
+    .ai-loading-container i {
+        font-size: 3rem !important;
+        /* 图标缩小 */
+    }
+
+    .terminal-text {
+        font-size: 0.9rem;
+        /* 文字缩小 */
+        text-align: center;
+        width: 90%;
+    }
+
+    /* 5. 调整置信度滑块 (Slider) */
+    .confidence-control {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .slider-label {
+        font-size: 0.8rem;
+    }
+
+    /* 6. 右下角悬浮按钮 (FAB) */
+    .ai-fab {
+        width: 50px;
+        height: 50px;
+        bottom: 90px;
+        /* 稍微往上提，避开手机底部导航条 */
+        right: 20px;
+    }
+
+    .ai-fab i {
+        font-size: 1.4rem;
+    }
+
+    .ai-body {
+        padding: 15px;
+        /* 减少内边距 */
+    }
+}
