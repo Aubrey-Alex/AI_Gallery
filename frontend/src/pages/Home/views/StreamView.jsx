@@ -118,7 +118,7 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
                             }}
                         >
                             <img
-                                src={img.thumbnailPath}
+                                src={`${import.meta.env.VITE_IMG_BASE_URL}${img.thumbnailPath}`}
                                 alt={img.fileName}
                                 loading="lazy"
                             />
