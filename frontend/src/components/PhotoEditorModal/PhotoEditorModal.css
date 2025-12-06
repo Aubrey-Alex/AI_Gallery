@@ -329,7 +329,6 @@
     z-index: 30000 !important;
 }
 
-/* 如果你也使用了 Modal.confirm 等弹窗，可能也需要提高 */
 .ant-modal-mask,
 .ant-modal-wrap {
     z-index: 20000 !important;
@@ -340,7 +339,7 @@
    ========================================= */
 @media (max-width: 1024px) {
 
-    /* 1. 容器：全屏显示，改为上下排布 */
+    /* 容器：全屏显示，改为上下排布 */
     .editor-container {
         width: 100vw;
         height: 100vh;
@@ -349,57 +348,56 @@
         max-width: 100%;
         border-radius: 0;
         border: none;
-        flex-direction: column;
         /* 关键：从 row 变为 column */
+        flex-direction: column;
     }
 
-    /* 2. 上半部分：预览区 (占屏幕 55%-60%) */
+    /* 上半部分：预览区 (占屏幕 55%-60%) */
     .preview-area {
-        flex: none;
         /* 禁止自动伸缩，固定高度 */
+        flex: none;
         width: 100%;
-        height: 55%;
         /* 图片区域高度 */
+        height: 55%;
         background-color: #000;
         border-bottom: 1px solid #1F1F1F;
     }
 
-    /* 3. 下半部分：工具面板 (占剩余空间) */
+    /* 下半部分：工具面板 (占剩余空间) */
     .tools-panel {
-        flex: 1;
         /* 占据剩余所有空间 */
+        flex: 1;
         width: 100%;
-        min-width: 0;
         /* 解除最小宽度限制 */
+        min-width: 0;
         max-width: none;
-        border-left: none;
         /* 去掉原本的左边框 */
+        border-left: none;
         background: #111;
-        padding-bottom: 0;
         /* 底部留白交给 panel-footer */
+        padding-bottom: 0;
     }
 
-    /* 4. 面板头部：缩小字号，紧凑一点 */
+    /* 面板头部：缩小字号，紧凑一点 */
     .panel-header {
         padding: 12px 15px;
         position: static;
-        /* 移动端不需要 sticky，或者 sticky 也行 */
     }
 
     .panel-header h2 {
         font-size: 1rem;
     }
 
-    /* 5. 菜单项：增大点击区域 */
+    /* 菜单项：增大点击区域 */
     .group-header {
         padding: 12px 15px;
         font-size: 0.95rem;
     }
 
-    /* 6. 滑块控件：针对手指触摸优化 */
+    /* 滑块控件：针对手指触摸优化 */
     .slider-control {
-        margin-bottom: 20px;
         /* 增加间距防止误触 */
+        margin-bottom: 20px;
         padding: 0 5px;
     }
 
@@ -415,13 +413,13 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
 
-    /* 7. 底部按钮区：固定在最底部 */
+    /* 底部按钮区：固定在最底部 */
     .panel-footer {
         padding: 15px;
-        background: #0A0A0A;
         /* 深色背景区分 */
-        padding-bottom: max(15px, env(safe-area-inset-bottom));
+        background: #0A0A0A;
         /* 适配 iPhone 底部横条 */
+        padding-bottom: max(15px, env(safe-area-inset-bottom));
     }
 
     .btn {
@@ -429,7 +427,7 @@
         font-size: 1rem;
     }
 
-    /* 8. 关闭按钮：调整位置 */
+    /* 关闭按钮：调整位置 */
     .editor-close-btn {
         top: 15px;
         right: 15px;
@@ -440,7 +438,7 @@
         border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    /* 9. 标签区域优化 */
+    /* 标签区域优化 */
     .tag-chips {
         gap: 8px;
     }

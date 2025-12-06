@@ -18,7 +18,7 @@ const Welcome = () => {
             <nav>
                 <div className="logo">AI Gallery.</div>
                 <div className="nav-actions">
-                    {/* 【修改点1】点击 Log in，传参 mode: 'login' */}
+                    {/* 点击 Log in，传参 mode: 'login' */}
                     <span
                         className="btn-login pointer"
                         onClick={() => navigate('/login', { state: { mode: 'login' } })}
@@ -26,7 +26,7 @@ const Welcome = () => {
                         Log in
                     </span>
 
-                    {/* 【修改点2】点击 Sign up，传参 mode: 'signup' */}
+                    {/* 点击 Sign up，传参 mode: 'signup' */}
                     <span
                         className="btn-signup pointer"
                         onClick={() => navigate('/login', { state: { mode: 'signup' } })}
@@ -49,7 +49,7 @@ const Welcome = () => {
                     </p>
                 </div>
                 <div className="gallery-scale-wrapper">
-                    {/* 图片组 - 严格对应 CSS 中的6张图 */}
+                    {/* 图片组*/}
 
                     {/* 1. 主图 */}
                     <img
@@ -79,14 +79,14 @@ const Welcome = () => {
                         alt="Decoration 1"
                     />
 
-                    {/* 5. 右侧人像 */}
+                    {/* 5. 右侧*/}
                     <img
                         src={womanImg}
                         className="floating-card card-deep-2"
                         alt="Decoration 2"
                     />
 
-                    {/* 6. 底部风景 */}
+                    {/* 6. 底部*/}
                     <img
                         src={lakeImg}
                         className="floating-card card-deep-3"

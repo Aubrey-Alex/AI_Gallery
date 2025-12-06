@@ -12,7 +12,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
     const [confidence, setConfidence] = useState(0.65);
     const inputRef = useRef(null);
 
-    // 定义文案数组（提取出来方便计算时间）
+    // 定义文案数组
     const LOADING_MESSAGES = [
         "正在解析自然语言指令...",
         "提取语义特征向量...",
@@ -22,7 +22,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
         "过滤低置信度数据...",
         "正在渲染全息投影..."
     ];
-    // 定义每句话的停留时间 (毫秒)
+    // 定义每句话的停留时间
     const MSG_INTERVAL = 300;
 
     useEffect(() => {
@@ -38,7 +38,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
 
             interval = setInterval(() => {
                 i++;
-                // 如果播放完了最后一句，就停在最后一句，不要重头循环，显得更智能
+                // 如果播放完了最后一句，就停在最后一句，不要重头循环
                 if (i < LOADING_MESSAGES.length) {
                     setLoadingText(LOADING_MESSAGES[i]);
                 }
@@ -47,6 +47,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
         return () => clearInterval(interval);
     }, [status]);
 
+    // 打开/关闭搜索框
     const toggleOpen = () => {
         setIsOpen(!isOpen);
         if (!isOpen) {
@@ -56,24 +57,24 @@ const AiSearchOverlay = ({ onImageClick }) => {
         }
     };
 
+    // 获取完整 URL
     const getFullUrl = (path) => {
         if (!path) return '';
         if (path.startsWith('http')) return path;
         return `${path}`;
     };
 
+    // 搜索
     const handleSearch = async (e) => {
         if (e.key === 'Enter' && query.trim()) {
             setStatus('searching');
 
             try {
-                // 【核心修复】：计算动画需要的最小总时长
-                // 比如 7句话 * 300ms = 2100ms
                 const minAnimationTime = LOADING_MESSAGES.length * MSG_INTERVAL;
 
                 // 使用 Promise.all 并行执行：
                 // 1. 发送真实请求
-                // 2. 等待动画播放完毕 (minDelay)
+                // 2. 等待动画播放完毕
                 // 只有两者都完成了，才会继续往下走
                 const [res, _] = await Promise.all([
                     axios.post('/api/mcp/search', { query }),
@@ -96,21 +97,25 @@ const AiSearchOverlay = ({ onImageClick }) => {
         }
     };
 
+    // 获取置信度类名
     const getConfidenceClass = (conf) => {
         if (conf >= 0.80) return 'high-precision';
         if (conf <= 0.40) return 'low-inspiration';
         return '';
     };
 
+    // 过滤置信度
     const filteredResults = results.filter(item => item.score >= confidence);
 
     return (
         <>
+            {/* 悬浮按钮 */}
             <div className={`ai-fab ${isOpen ? 'hidden' : ''}`} onClick={toggleOpen}>
                 <div className="ai-fab-ring"></div>
                 <i className="ri-brain-line"></i>
             </div>
 
+            {/* 搜索框 */}
             {isOpen && (
                 <div className="ai-overlay">
                     <div className="ai-backdrop" onClick={toggleOpen}></div>
@@ -146,7 +151,6 @@ const AiSearchOverlay = ({ onImageClick }) => {
                             {status === 'searching' && (
                                 <div className="ai-loading-container">
                                     <i className="ri-brain-line" style={{ fontSize: '4rem', marginBottom: '10px' }}></i>
-                                    {/* 【核心修复】：移除了这里的 _，只保留光标动画 */}
                                     <p className="terminal-text">{loadingText}</p>
                                 </div>
                             )}
@@ -169,6 +173,7 @@ const AiSearchOverlay = ({ onImageClick }) => {
                                         />
                                     </div>
 
+                                    {/* 展示图片 */}
                                     <div className="ai-grid">
                                         {filteredResults.map(img => (
                                             <div

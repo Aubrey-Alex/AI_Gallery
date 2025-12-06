@@ -2,7 +2,6 @@
 import React, { useState, useRef } from 'react';
 import './AIUploadModal.css';
 
-// 【修改点 1】接收 uploadState 和 statusText
 const AIUploadModal = ({ isOpen, onClose, onFileSelect, uploadState = 'idle', statusText = '' }) => {
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef(null);
@@ -30,18 +29,16 @@ const AIUploadModal = ({ isOpen, onClose, onFileSelect, uploadState = 'idle', st
         }
     };
 
-    // 修改 handleFileSelect 逻辑（或者直接改 input 的 onChange）
     const handleFileChange = (e) => {
         const files = e.target.files;
         if (files && files.length > 0) {
             onFileSelect(files);
         }
-        // 【核心修复】无论成功与否，选完就清空，允许下次重复选同个文件
+        // 无论成功与否，选完就清空，允许下次重复选同个文件
         e.target.value = '';
     };
 
-    // 如果不在 open 状态，不渲染内容 (配合 CSS opacity)
-    // 或者直接控制 className
+    // 如果不在 open 状态，不渲染内容
     return (
         <div className={`ai-upload-overlay ${isOpen ? 'active' : ''}`}>
             {/* 只有 idle 状态允许关闭，扫描中禁止关闭 */}
@@ -52,7 +49,7 @@ const AIUploadModal = ({ isOpen, onClose, onFileSelect, uploadState = 'idle', st
             )}
 
             <div
-                // 【修改点 2】根据状态切换 class
+                // 根据状态切换 class
                 className={`upload-box ${uploadState === 'scanning' ? 'scanning' : 'idle'}`}
                 style={{
                     borderColor: isDragOver ? '#FF5722' : '',
@@ -72,7 +69,7 @@ const AIUploadModal = ({ isOpen, onClose, onFileSelect, uploadState = 'idle', st
                 <div className="scan-beam"></div>
 
                 <div className="upload-content">
-                    {/* 【修改点 3】根据 uploadState 渲染不同内容 */}
+                    {/* 根据 uploadState 渲染不同内容 */}
                     {uploadState === 'idle' ? (
                         <>
                             <i className="ri-upload-cloud-2-line upload-icon"></i>

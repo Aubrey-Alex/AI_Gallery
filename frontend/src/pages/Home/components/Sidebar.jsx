@@ -24,6 +24,7 @@ const Sidebar = ({ viewMode, showingFavorites, timelineTitle, tags, onMenuClick,
                     <i className="ri-heart-3-line"></i><span>Favorites</span>
                 </div>
             </div>
+            {/* 标签区 */}
             <div className="menu-group">
                 <div className="menu-title">My Tags</div>
                 {tags.length > 0 ? (

@@ -6,7 +6,6 @@ import { message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
 
-// 引入本地图片
 import girlImg from '../../assets/images/welcome/girl.avif';
 import birdImg from '../../assets/images/welcome/bird.avif';
 import mountain2Img from '../../assets/images/welcome/mountain2.jpg';
@@ -14,9 +13,7 @@ import manImg from '../../assets/images/welcome/man.jpg';
 import womanImg from '../../assets/images/welcome/woman.jpg';
 import lakeImg from '../../assets/images/welcome/lake.jpg';
 
-// 配置 axios 基础 URL
 axios.defaults.baseURL = '';
-// axios.defaults.baseURL = 'http://10.162.127.134:8080';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -28,11 +25,11 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
 
-    // --- 【新增】Refs 用于控制光标跳转 ---
+    // 控制光标跳转
     const emailRef = useRef(null);
     const passwordRef = useRef(null);
 
-    // 读取路由参数切换 Tab
+    // 读取路由参数切换选项卡
     useEffect(() => {
         if (location.state?.mode === 'signup') {
             setIsLogin(false);
@@ -41,14 +38,13 @@ const Login = () => {
         }
     }, [location.state]);
 
-    // --- 登录逻辑 ---
+    // 登录逻辑
     const handleLogin = async () => {
         if (!username || !password) {
             message.warning('请输入用户名和密码');
             return;
         }
         try {
-            // alert(`准备发送请求到: ${axios.defaults.baseURL}/api/user/login`);
             const res = await axios.post('/api/user/login', {
                 username, password
             });
@@ -87,7 +83,7 @@ const Login = () => {
         }
     };
 
-    // --- 注册逻辑 ---
+    // 注册逻辑
     const handleRegister = async () => {
         if (!username || !password || !email) {
             message.warning('请填写完整信息');
@@ -132,9 +128,9 @@ const Login = () => {
         }
     };
 
-    // --- 【新增】统一表单提交处理 ---
+    // 统一表单提交处理
     const handleFormSubmit = (e) => {
-        e.preventDefault(); // 阻止浏览器默认刷新
+        e.preventDefault();
         if (isLogin) {
             handleLogin();
         } else {
@@ -142,11 +138,11 @@ const Login = () => {
         }
     };
 
-    // --- 【新增】回车跳转处理函数 ---
+    // 回车跳转处理函数
     const handleEnterKey = (e, nextRef) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // 阻止默认提交
-            nextRef.current?.focus(); // 跳转到下一个输入框
+            e.preventDefault();
+            nextRef.current?.focus();
         }
     };
 
@@ -187,7 +183,7 @@ const Login = () => {
                     <div className="form-view">
                         <form onSubmit={handleFormSubmit}>
                             {isLogin ? (
-                                // --- 登录表单 ---
+                                // 登录表单
                                 <>
                                     <div className="form-group">
                                         <input
@@ -197,19 +193,18 @@ const Login = () => {
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             autoFocus
-                                            // 登录模式：回车跳到密码框
                                             onKeyDown={(e) => handleEnterKey(e, passwordRef)}
                                         />
                                     </div>
                                     <div className="form-group">
                                         <input
-                                            ref={passwordRef} // 绑定 Ref
+                                            ref={passwordRef}
                                             type="password"
                                             className="input-field"
                                             placeholder="Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                        // 最后一个输入框不加 onKeyDown，默认回车提交表单
+                                        // 不加 onKeyDown，默认回车提交表单
                                         />
                                     </div>
                                     <button type="submit" className="submit-btn">Log In</button>
@@ -221,7 +216,7 @@ const Login = () => {
                                     </div>
                                 </>
                             ) : (
-                                // --- 注册表单 ---
+                                // 注册表单
                                 <>
                                     <div className="form-group">
                                         <input
@@ -231,31 +226,31 @@ const Login = () => {
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             autoFocus
-                                            // 注册模式：回车跳到邮箱框
+                                            // 回车跳到邮箱框
                                             onKeyDown={(e) => handleEnterKey(e, emailRef)}
                                         />
                                     </div>
                                     <div className="form-group">
                                         <input
-                                            ref={emailRef} // 绑定 Ref
+                                            ref={emailRef}
                                             type="email"
                                             className="input-field"
                                             placeholder="Email Address"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            // 注册模式：回车跳到密码框
+                                            // 回车跳到密码框
                                             onKeyDown={(e) => handleEnterKey(e, passwordRef)}
                                         />
                                     </div>
                                     <div className="form-group">
                                         <input
-                                            ref={passwordRef} // 绑定 Ref
+                                            ref={passwordRef}
                                             type="password"
                                             className="input-field"
                                             placeholder="Create Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                        // 最后一个输入框不加 onKeyDown，默认回车提交表单
+                                        // 不加 onKeyDown，默认回车提交表单
                                         />
                                     </div>
                                     <button type="submit" className="submit-btn">Create Account</button>

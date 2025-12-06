@@ -7,37 +7,35 @@ import { getPhotoDate } from '../../utils/processPhotoDate';
 // 引入样式
 import './Home.css';
 
-// 引入拆分的组件
+// 引入拆分组件
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import GridView from './views/GridView';
 import StreamView from './views/StreamView';
 import TimelineView from './views/TimelineView';
 import AiSearchOverlay from '../../components/AiSearch/AiSearchOverlay';
-
-// 引入弹窗组件
 import PhotoEditorModal from '../../components/PhotoEditorModal/PhotoEditorModal';
 import AIUploadModal from '../../components/AIUploadModal/AIUploadModal';
 
 const Home = () => {
     const navigate = useNavigate();
 
-    // --- State: 用户与视图 ---
+    // 用户与视图
     const [user, setUser] = useState({ username: 'Guest' });
     const [viewMode, setViewMode] = useState('grid'); // grid, stream, timeline
     const [timelineTitle, setTimelineTitle] = useState('All Photos');
     const [showingFavorites, setShowingFavorites] = useState(false);
 
-    // --- State: 数据 ---
+    // 数据
     const [images, setImages] = useState([]);
     const [tags, setTags] = useState([]);
     const [currentTag, setCurrentTag] = useState(null);
 
-    // --- State: 交互与多选 ---
+    // 交互与多选
     const [selectedIds, setSelectedIds] = useState([]);
-    const [contextMenu, setContextMenu] = useState(null); // {x, y, targetId}
+    const [contextMenu, setContextMenu] = useState(null);
 
-    // --- State: 弹窗 ---
+    // 弹窗
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingImage, setEditingImage] = useState(null);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -45,10 +43,9 @@ const Home = () => {
     const [uploadStatusText, setUploadStatusText] = useState('');
     const [isTagModalOpen, setIsTagModalOpen] = useState(false);
     const [inputTags, setInputTags] = useState([]);
-
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // --- 初始化 ---
+    // 初始化
     useEffect(() => {
         const storedUser = localStorage.getItem('userInfo');
         if (!storedUser) {
@@ -68,8 +65,7 @@ const Home = () => {
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    // --- API 请求逻辑 ---
-
+    // API 请求逻辑
     const fetchTags = async () => {
         try {
             const res = await axios.get('/api/tag/list');
@@ -102,7 +98,8 @@ const Home = () => {
                     setTimelineTitle(`"${query}"`);
                     setCurrentTag(null);
                 } else {
-                    setViewMode('grid'); // 回到全部
+                    // 回到全部
+                    setViewMode('grid');
                     setCurrentTag(null);
                 }
             }
@@ -111,8 +108,7 @@ const Home = () => {
         }
     };
 
-    // --- 交互处理函数 ---
-
+    // 交互处理函数
     const handleSearch = (keyword) => {
         if (keyword) {
             fetchImages(keyword);
@@ -121,6 +117,7 @@ const Home = () => {
         }
     };
 
+    // all与faviority展示切换
     const handleMenuClick = (type) => {
         if (type === 'all') {
             setShowingFavorites(false);
@@ -132,31 +129,33 @@ const Home = () => {
         }
     };
 
+    // 标签展示切换
     const handleTagClick = (tagName) => {
         fetchImages(tagName);
     };
 
+    // 选中卡片逻辑
     const handleCardClick = (id) => {
-        // 1. 先清除右键菜单（如果有）
+        // 先清除右键菜单
         if (contextMenu) setContextMenu(null);
 
-        // 2. 判断是否是手机端 (屏幕宽度小于 1024px)
+        // 判断是否是手机端
         const isMobile = window.innerWidth <= 1024;
 
-        // 3. 判断当前是否已经是“多选模式”
-        // (如果已经有选中的图片，那么无论手机还是电脑，点击都应该是“加选/减选”)
+        // 判断当前是否已经是多选模式
+        // 如果已经有选中的图片，那么无论手机还是电脑，点击都应该是加选/减选
         const isMultiSelectMode = selectedIds.length > 0;
 
         if (isMobile && !isMultiSelectMode) {
-            // 【手机端逻辑】且【当前没在多选】：
-            // 单击直接打开大图预览！
+            // 手机端逻辑且当前没在多选：
+            // 单击直接打开大图预览
             const targetImg = images.find(i => i.id === id);
             if (targetImg) {
                 handleOpenEditor(targetImg);
             }
         } else {
-            // 【电脑端逻辑】或者【手机端正在多选中】：
-            // 保持原有的“选中/取消选中”逻辑
+            // 电脑端逻辑或者手机端正在多选中：
+            // 保持原有的选中/取消选中逻辑
             setSelectedIds(prev => {
                 if (prev.includes(id)) return prev.filter(item => item !== id);
                 return [...prev, id];
@@ -164,16 +163,15 @@ const Home = () => {
         }
     };
 
+    // 开启编辑页面
     const handleOpenEditor = (targetImg) => {
-        // 【核心修复】
-        // 1. 尝试从当前已加载的主列表(images)中查找该图片的完整信息
-        // AI Search 返回的对象是 "Lite" 版（缺 tags/metadata），而 images 里的对象是 "Full" 版
+        // 尝试从当前已加载的主列表(images)中查找该图片的完整信息
+        // AI Search 返回的对象缺 tags/metadata，而 images 里的对象是完整版
         const fullImg = images.find(i => i.id === targetImg.id);
 
-        // 2. 智能合并：
-        // 如果找到了完整对象(fullImg)，就以它为主（因为它有 tags 和 metadata）；
-        // 既然 fullImg 能在主页网格正常打开，它一定也有正确的 path。
-        // 如果没找到（比如搜的是还没加载出来的老图），就只能用 targetImg 保底。
+        // 如果找到了完整对象(fullImg)，就以它为主；
+        // 既然 fullImg 能在主页网格正常打开，它一定有正确的 path
+        // 如果没找到（比如搜的是还没加载出来的老图），就只能用 targetImg 保底
         const finalImg = fullImg || targetImg;
 
         setEditingImage(finalImg);
@@ -181,6 +179,7 @@ const Home = () => {
         setContextMenu(null);
     };
 
+    // 右键点击图片
     const handleContextMenu = (e, id) => {
         e.preventDefault();
         if (!selectedIds.includes(id)) {
@@ -189,9 +188,9 @@ const Home = () => {
         setContextMenu({ x: e.clientX, y: e.clientY, targetId: id });
     };
 
+    // 收藏/取消收藏
     const handleToggleFavorite = async (e, img) => {
         e.stopPropagation();
-        // 乐观更新
         setImages(prev => prev.map(item => {
             if (item.id === img.id) return { ...item, isFavorite: item.isFavorite === 1 ? 0 : 1 };
             return item;
@@ -204,13 +203,13 @@ const Home = () => {
         }
     };
 
-    // --- 核心业务逻辑：上传、删除、编辑、打标签 ---
+    // 核心业务逻辑：上传、删除、编辑、打标签 ---
 
+    // 上传
     const handleSmartUpload = async (files) => {
         if (!files || files.length === 0) return;
         const MAX_SIZE = 50 * 1024 * 1024;
         const validFiles = Array.from(files).filter(file => {
-            // 简单的校验逻辑，省略具体 mime/后缀 检查代码以节省篇幅，保持你原有的逻辑即可
             return file.size <= MAX_SIZE;
         });
         if (validFiles.length === 0) return;
@@ -236,22 +235,16 @@ const Home = () => {
                 await Promise.all(batch.map(async (file) => {
                     const formData = new FormData();
                     formData.append('file', file);
-                    // ==================================================
-                    // 【核心接入点】在此处调用 getPhotoDate
-                    // ==================================================
                     try {
-                        // 1. 智能解析真实时间（已包含未来时间防御机制）
+                        // 智能解析真实时间
                         const realDate = await getPhotoDate(file);
 
-                        // 2. 将时间转为时间戳或字符串传给后端
-                        // 建议传时间戳 (Long)，Java 后端好处理
                         if (realDate) {
                             formData.append('shootTime', realDate.getTime());
                         }
                     } catch (err) {
                         console.warn('时间解析失败，将使用服务器时间', err);
                     }
-                    // ==================================================
 
                     try {
                         const res = await axios.post('/api/image/upload', formData);
@@ -274,6 +267,7 @@ const Home = () => {
         }
     };
 
+    // 保存编辑后的照片
     const handleSaveEditedImage = async (base64Data) => {
         const hideLoading = message.loading('正在保存...', 0);
         try {
@@ -292,6 +286,7 @@ const Home = () => {
         }
     };
 
+    // 删除照片
     const handleDelete = async () => {
         if (selectedIds.length === 0) return;
         if (!window.confirm(`确定删除 ${selectedIds.length} 张图片吗？`)) return;
@@ -309,6 +304,7 @@ const Home = () => {
         }
     };
 
+    // 增加标签
     const handleAddTags = async () => {
         if (inputTags.length === 0) return;
         try {
@@ -324,6 +320,7 @@ const Home = () => {
         } catch (e) { message.error("添加失败"); }
     };
 
+    // 登出
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
         localStorage.removeItem('jwt_token');
@@ -335,18 +332,19 @@ const Home = () => {
         <div className="home-container">
             <div className={`sidebar-wrapper ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
                 <Sidebar
-                    /* 现有 props 保持不变 */
                     viewMode={viewMode}
                     showingFavorites={showingFavorites}
                     timelineTitle={timelineTitle}
                     tags={tags}
                     onMenuClick={(type) => {
                         handleMenuClick(type);
-                        setIsMobileMenuOpen(false); // 手机端点击菜单后自动收起
+                        // 手机端点击all/favorite后自动收起
+                        setIsMobileMenuOpen(false);
                     }}
                     onTagClick={(tag) => {
                         handleTagClick(tag);
-                        setIsMobileMenuOpen(false); // 手机端点击标签后自动收起
+                        // 手机端点击标签后自动收起
+                        setIsMobileMenuOpen(false);
                     }}
                 />
                 {/* 遮罩层：点击半透明背景关闭菜单 */}
@@ -357,6 +355,7 @@ const Home = () => {
             </div>
 
             <main className="main-content">
+                {/* 顶栏 */}
                 <TopBar
                     user={user}
                     viewMode={viewMode}
@@ -367,6 +366,7 @@ const Home = () => {
                     onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
                 />
 
+                {/* 视图切换 */}
                 <div className={`gallery-viewport mode-${viewMode}`}>
                     {viewMode === 'grid' && (
                         <GridView
@@ -386,7 +386,6 @@ const Home = () => {
                     {viewMode === 'stream' && (
                         <StreamView
                             images={images}
-                            // 【新增】将选中的 ID 列表传进去
                             selectedIds={selectedIds}
                             onDoubleClick={handleOpenEditor}
                         />
@@ -430,7 +429,7 @@ const Home = () => {
                     </div>
                 )}
 
-                {/* --- 各种弹窗 --- */}
+                {/* 各种弹窗 */}
                 <Modal
                     title="添加自定义标签"
                     open={isTagModalOpen}
@@ -451,6 +450,7 @@ const Home = () => {
                     />
                 </Modal>
 
+                {/* 智能上传 */}
                 <AIUploadModal
                     isOpen={isUploadModalOpen}
                     onClose={() => setIsUploadModalOpen(false)}
@@ -459,6 +459,7 @@ const Home = () => {
                     statusText={uploadStatusText}
                 />
 
+                {/* 图片编辑 */}
                 <PhotoEditorModal
                     isOpen={isEditorOpen}
                     onClose={() => setIsEditorOpen(false)}
@@ -466,6 +467,7 @@ const Home = () => {
                     onSave={handleSaveEditedImage}
                 />
 
+                {/* AI搜索 */}
                 <AiSearchOverlay
                     onNavigate={navigate}
                     onImageClick={handleOpenEditor}

@@ -1,6 +1,6 @@
 /* src/components/AiSearch/AiSearchOverlay.css */
 
-/* --- 1. 基础保持不变 (保留原本的终端风) --- */
+/* 基础保持不变 (保留原本的终端风) */
 .ai-fab {
     position: fixed;
     bottom: 30px;
@@ -15,7 +15,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    /* 【关键修改 1】降低入口按钮层级，避免挡住编辑器 */
+    /* 降低入口按钮层级，避免挡住编辑器 */
     z-index: 9000;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -37,15 +37,14 @@
     color: #0ff;
 }
 
-/* --- 2. 覆盖层 (调整 Z-Index) --- */
+/* 覆盖层 (调整 Z-Index) */
 .ai-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* 【关键修改 2】设定一个固定的高层级，但必须比编辑器(PhotoEditor)低 */
-    /* 假设编辑器是 10001，这里设为 9999 */
+    /* 设定一个固定的高层级，但必须比编辑器(PhotoEditor)低 */
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -78,14 +77,9 @@
     animation: zoomIn 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-/* src/components/AiSearch/AiSearchOverlay.css */
-
-/* ... 前面的代码保持不变 ... */
-
-/* --- 3. 头部与美化后的搜索胶囊 --- */
+/* 头部与美化后的搜索胶囊 */
 .ai-header {
     height: 100px;
-    /*稍微增高一点，让呼吸感更强*/
     border-bottom: 1px solid rgba(0, 255, 255, 0.08);
     display: flex;
     align-items: center;
@@ -97,11 +91,11 @@
     gap: 20px;
 }
 
-/* 搜索条容器 - 核心美化部分 */
+/* 搜索条容器 */
 .ai-search-bar {
     flex: 1;
     max-width: 100%;
-    /* 限制最大宽度，更像一个搜索工具 */
+    /* 限制最大宽度 */
     height: 56px;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(0, 255, 255, 0.15);
@@ -237,14 +231,12 @@
 
 .ai-close-main:hover {
     background: rgba(255, 0, 50, 0.1);
-    /* 红色警示色，符合关闭逻辑 */
+    /* 红色警示色 */
     border-color: rgba(255, 0, 50, 0.3);
     color: #ff3333;
 }
 
-/* ... 后面的 ai-body 等代码保持不变 ... */
-
-/* --- 4. 中间内容与加载动画 (保持原样) --- */
+/* 中间内容与加载动画 (保持原样) */
 .ai-body {
     flex: 1;
     padding: 30px;
@@ -321,7 +313,7 @@
     box-shadow: 0 0 5px #0ff;
 }
 
-/* --- 5. 置信度滑块 (保持原样) --- */
+/* 置信度滑块 (保持原样) */
 .confidence-control {
     background: rgba(0, 255, 255, 0.05);
     padding: 20px 30px;
@@ -408,7 +400,7 @@
     color: #ffaa00;
 }
 
-/* --- 6. 结果网格 (【重点修改】：对齐 Home 的卡片体验，但保留赛博风) --- */
+/* 结果网格 --- */
 .ai-grid {
     display: grid;
     /* 调整列宽，使其不那么拥挤 */
@@ -419,7 +411,7 @@
 
 .ai-card {
     position: relative;
-    /* 【关键】强制正方形比例，跟 Home 界面一致，不乱跑 */
+    /* 强制正方形比例，跟 Home 界面一致，不乱跑 */
     aspect-ratio: 1 / 1;
     border-radius: 8px;
     overflow: hidden;
@@ -430,7 +422,7 @@
     background: #000;
 }
 
-/* 悬停效果：保留原来的青色发光 */
+/* 悬停效果 */
 .ai-card:hover {
     border-color: #0ff;
     transform: translateY(-5px);
@@ -449,8 +441,8 @@
 }
 
 .ai-card:hover img {
-    transform: scale(1.1);
     /* 悬停微放大 */
+    transform: scale(1.1);
 }
 
 .score-badge {
@@ -505,34 +497,29 @@
     display: block;
 }
 
-/* src/components/AiSearch/AiSearchOverlay.css */
-
-/* ... (保留上面的所有代码) ... */
-
 /* =========================================
-   AI Search 移动端适配 (App 沉浸体验版)
+   AI Search 移动端适配 
    ========================================= */
 @media (max-width: 1024px) {
 
-    /* 1. 容器全屏化：手机上不需要“悬浮弹窗”感，要的是“新页面”感 */
+    /* 容器全屏化 */
     .ai-content {
         width: 100% !important;
         height: 100% !important;
         max-width: 100%;
-        border-radius: 0;
         /* 去掉圆角 */
-        border: none;
+        border-radius: 0;
         /* 去掉边框 */
-        background: #0a0f14;
+        border: none;
         /* 纯色背景，防止透明度导致性能问题 */
+        background: #0a0f14;
     }
 
     .ai-overlay {
         z-index: 9999;
-        /* 确保层级最高，盖住所有东西 */
     }
 
-    /* 2. 头部调整：更紧凑，留出空间给内容 */
+    /* 头部调整 */
     .ai-header {
         height: 70px;
         padding: 0 12px;
@@ -563,35 +550,35 @@
         background: rgba(255, 255, 255, 0.05);
     }
 
-    /* 3. 网格布局：强制双列 (2列) */
+    /* 网格布局：强制双列 */
     .ai-grid {
         /* 原来的 180px 在手机上太宽了，会导致单列 */
         /* 改为 repeat(2, 1fr) 强制两列 */
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
         /* 间距缩小 */
-        padding-bottom: 80px;
+        gap: 10px;
         /* 底部留白，防止被虚拟 Home 条遮挡 */
+        padding-bottom: 80px;
     }
 
-    /* 4. 调整加载动画区域 */
+    /* 调整加载动画区域 */
     .ai-loading-container {
         padding: 15px;
     }
 
     .ai-loading-container i {
-        font-size: 3rem !important;
         /* 图标缩小 */
+        font-size: 3rem !important;
     }
 
     .terminal-text {
-        font-size: 0.9rem;
         /* 文字缩小 */
+        font-size: 0.9rem;
         text-align: center;
         width: 90%;
     }
 
-    /* 5. 调整置信度滑块 (Slider) */
+    /* 调整置信度滑块 (Slider) */
     .confidence-control {
         padding: 15px;
         margin-bottom: 20px;
@@ -601,12 +588,12 @@
         font-size: 0.8rem;
     }
 
-    /* 6. 右下角悬浮按钮 (FAB) */
+    /* 右下角悬浮按钮 */
     .ai-fab {
         width: 50px;
         height: 50px;
-        bottom: 90px;
         /* 稍微往上提，避开手机底部导航条 */
+        bottom: 90px;
         right: 20px;
     }
 
@@ -615,7 +602,7 @@
     }
 
     .ai-body {
-        padding: 15px;
         /* 减少内边距 */
+        padding: 15px;
     }
 }
