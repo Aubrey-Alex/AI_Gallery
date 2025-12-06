@@ -35,7 +35,7 @@ const GridView = ({
                         </div>
 
                         <img
-                            src={img.thumbnailPath}
+                            src={`${import.meta.env.VITE_IMG_BASE_URL}${img.thumbnailPath}`}
                             className="card-img"
                             alt={img.fileName}
                             loading="lazy"

@@ -41,7 +41,7 @@ const TimelineView = ({
                             </div>
 
                             <img
-                                src={img.thumbnailPath}
+                                src={`${import.meta.env.VITE_IMG_BASE_URL}${img.thumbnailPath}`}
                                 className="masonry-img"
                                 alt="timeline item"
                             />
