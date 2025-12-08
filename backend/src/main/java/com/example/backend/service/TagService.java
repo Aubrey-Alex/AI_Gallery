@@ -87,7 +87,7 @@ public class TagService {
         }
     }
 
-    // 获取单张图片的所有标签 (返回完整对象，包含 type)
+    // 获取单张图片的所有标签 (返回完整对象)
     public List<ImageTag> getTagsByImageId(Long imageId) {
         QueryWrapper<ImageTagRelation> relQuery = new QueryWrapper<>();
         relQuery.eq("image_id", imageId);
@@ -132,10 +132,6 @@ public class TagService {
 
         for (ImageTag tag : tags) {
             Integer count = countMap.get(tag.getId());
-            // 【修改】这里不再过滤 type==1，而是把所有标签都返回
-            // 可以在 TagVO 里加一个 type 字段传给前端，让前端决定侧边栏显示什么
-            // 假设 TagVO 还没有 type 字段，我们暂时先只返回人工标签以保持侧边栏干净
-            // 如果你想在侧边栏也显示 EXIF 标签，就把下面这个 if 去掉
             if (tag.getTagType() == 1) {
                 result.add(new TagVO(tag.getTagName(), count));
             }

@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@TableName("sys_user") // 指定数据库表名
+@TableName("sys_user")
 public class SysUser {
     @TableId(type = IdType.AUTO) // 主键自增
     private Long id;
@@ -15,7 +15,7 @@ public class SysUser {
     private String role;
     private LocalDateTime createTime;
 
-    // --- 下面是手动生成的 Getter 和 Setter 方法，替换了 @Data 的功能 ---
+    // --- Getters and Setters ---
 
     public Long getId() {
         return id;

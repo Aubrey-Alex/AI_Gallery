@@ -44,7 +44,7 @@ public class AIController {
             ImageInfo image = imageService.getById(imageId);
             if (image == null) throw new RuntimeException("图片不存在");
 
-            // 2. 获取物理路径 (使用缩略图以节省流量)
+            // 2. 获取物理路径 (使用缩略图)
             String thumbName = image.getThumbnailPath().replace("/uploads/", "");
             String absolutePath = Paths.get(uploadDir).resolve(thumbName).toString();
 

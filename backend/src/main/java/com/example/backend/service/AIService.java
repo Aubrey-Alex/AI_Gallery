@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct; // SpringBoot 3.x 用 jakarta.annotation.PostConstruct
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class AIService {
 
-    // 1. 注入变量 (注意去掉了 static)
+    // 1. 注入变量
     @Value("${baidu.ai.app-id}")
     private String appId;
 
@@ -30,8 +30,7 @@ public class AIService {
     private static final double STRICT_THRESHOLD = 0.4;
 
     /**
-     * 【核心修复】
-     * 绝对不要在 public AIService() { ... } 构造函数里初始化 client！
+     * ！！不可以在 public AIService() { ... } 构造函数里初始化 client
      * 必须用 @PostConstruct，确保变量注入后再执行。
      */
     @PostConstruct
@@ -89,7 +88,7 @@ public class AIService {
                     }
                 }
 
-                // 策略B (保底)
+                // 策略B：保底
                 if (finalTags.isEmpty() && !candidates.isEmpty()) {
                     System.out.println("触发保底策略...");
                     for (int i = 0; i < Math.min(candidates.size(), 2); i++) {

@@ -1,5 +1,4 @@
 -- 1. 创建一个专用用户 (用户名: ai_admin, 密码: 123456)
--- 如果提示用户已存在，可以忽略或换个名字
 CREATE USER 'ai_admin' @'localhost' IDENTIFIED BY '123456';
 
 -- 2. 确保 ai_gallery 数据库存在

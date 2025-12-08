@@ -11,9 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class JWTUtils {
-    // 1. 定义秘钥 (0.12.x 要求更加严格的 Key 对象)
-    // 注意：为了安全，HS512 算法要求秘钥至少 64 个字节。
-    // 这里我们把字符串转为 Key 对象。如果您的字符串太短，可能会报错，建议改长一点。
+    // 1. 定义秘钥
+    // 为了安全，HS512 算法要求秘钥至少 64 个字节。
+    // 这里我们把字符串转为 Key 对象。字符串太短，可能会报错。
     private static final String SECRET_STRING = "ai_gallery_secret_key_zju_cs_very_long_security_key_for_hs512_algorithm";
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes(StandardCharsets.UTF_8));
 
@@ -44,7 +44,7 @@ public class JWTUtils {
                     .verifyWith(KEY) // 设置验签的 Key
                     .build()         // 构建解析器
                     .parseSignedClaims(token) // 解析 Token
-                    .getPayload();   // 获取载荷 (getBody 已在 0.12.x 中弃用，改为 getPayload)
+                    .getPayload();   // 获取载荷
         } catch (Exception e) {
             // 解析失败（过期或篡改），返回 null
             return null;

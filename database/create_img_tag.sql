@@ -13,7 +13,7 @@ CREATE TABLE image_tag_relation (
     tag_id BIGINT NOT NULL COMMENT '标签 ID',
     -- 防止同一张图重复打同一个标签
     UNIQUE KEY uk_img_tag (image_id, tag_id),
-    -- 外键约束 (可选，建议加上以保证数据完整性)
+    -- 外键约束
     CONSTRAINT fk_relation_image FOREIGN KEY (image_id) REFERENCES image_info(id) ON DELETE CASCADE,
     CONSTRAINT fk_relation_tag FOREIGN KEY (tag_id) REFERENCES image_tag(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,25 +1,24 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import './PhotoEditorModal.css';
 import { message } from 'antd';
-// 引入 Cropper
 import Cropper from 'react-cropper';
-// import 'cropperjs/dist/cropper.css';
 import axios from '../../utils/request';
 
 const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
     // 从 imageObj 中提取 src
-    const imageSrc = imageObj ? `http://localhost:8080${imageObj.filePath}` : '';
+    const imageSrc = imageObj ? `${imageObj.filePath}` : '';
     // 提取 metadata (防止为空)
     const meta = imageObj?.metadata || {};
 
     console.log('ImageSrc:', imageSrc);
     const [activeGroup, setActiveGroup] = useState('light');
-    const cropperRef = useRef(null); // 引用 Cropper 实例
-    // 【新增】用来记录图片刚加载时的初始缩放值
+    // 引用 Cropper 实例
+    const cropperRef = useRef(null);
+    // 用来记录图片刚加载时的初始缩放值
     const baseZoom = useRef(0);
 
     // 核心编辑状态
-    // 【修复】在这里定义初始状态常量
+    // 在这里定义初始状态常量
     const INITIAL_STATE = {
         exposure: 0, contrast: 0, highlights: 0, shadows: 0,
         temp: 0, tint: 0, vibrance: 0, saturation: 0,
@@ -28,9 +27,9 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
     };
 
     // 核心编辑状态
-    const [editState, setEditState] = useState(INITIAL_STATE); // 使用常量初始化
+    const [editState, setEditState] = useState(INITIAL_STATE);
 
-    // 【核心修复】监听 isOpen 变化，每次打开时重置所有状态
+    // 监听 isOpen 变化，每次打开时重置所有状态
     useEffect(() => {
         if (isOpen) {
             // 重置 React 状态
@@ -47,7 +46,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
         }
     }, [isOpen]); // 依赖 isOpen，每次打开都会触发
 
-    // 【核心修改】更新状态函数
+    // 更新状态函数
     const updateState = (key, value) => {
         const val = parseFloat(value);
         setEditState(prev => ({ ...prev, [key]: val }));
@@ -56,17 +55,17 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
         if (key === 'rotate' && cropperRef.current) {
             const cropper = cropperRef.current.cropper;
 
-            // 1. 执行旋转
+            // 执行旋转
             cropper.rotateTo(val);
 
-            // 2. 计算自动缩放比例 (关键算法)
+            // 计算自动缩放比例 (关键算法)
             // 目的：旋转后放大图片，确保裁剪框内没有黑边
             const radians = (val * Math.PI) / 180; // 转弧度
             // 缩放系数 = |cosθ| + |sinθ|
             // 这个公式能保证正方形区域旋转时始终填满
             const zoomFactor = Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians));
 
-            // 3. 应用缩放 (基于初始缩放值 baseZoom)
+            // 应用缩放 (基于初始缩放值 baseZoom)
             if (baseZoom.current > 0) {
                 cropper.zoomTo(baseZoom.current * zoomFactor);
             }
@@ -93,7 +92,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
         message.info('已重置所有参数');
     };
 
-    // --- 生成 CSS 滤镜字符串 (用于预览和最终保存) ---
+    // 生成 CSS 滤镜字符串 (用于预览和最终保存)
     const getFilterString = () => {
         const {
             exposure, contrast, highlights, shadows,
@@ -117,9 +116,6 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
             `grayscale(${gray}%)`
         ];
 
-        // 注意：这里不加 SVG url(#sharpen)，因为 Canvas API 不支持直接画 SVG Filter
-        // 如果要做 SVG 锐化，需要极其复杂的像素处理，为了大程稳定性，这里只做 CSS 模拟
-
         return filters.join(' ');
     };
 
@@ -133,26 +129,17 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
             if (res.data.code === 200) {
                 message.success('分析完成！');
 
-                // ----------------------------------------------------
-                // 【修改这里】
-                // 1. 绝对不要调用 onSave()，因为它会触发父组件把"空图片"发给后端保存，导致报错
-                // onSave();  <-- 删除这行
-                // ----------------------------------------------------
-
-                // 2. 尝试在当前弹窗直接显示新标签（用户体验更好）
+                // 尝试在当前弹窗直接显示新标签（用户体验更好）
                 if (res.data.data && res.data.data.tags) {
-                    // 这是一个临时显示的方案，不用刷新页面也能看到结果
-                    // 注意：这里修改的是 props 的引用，虽然 React 不推荐但能立即生效
+                    // 不用刷新页面也能看到结果
                     if (!imageObj.tags) imageObj.tags = [];
 
-                    // 假设后端返回的是标签字符串数组 ['猫', '键盘']
-                    // 我们需要构造成前端需要的对象结构 { tagName: '猫', tagType: 2 }
                     const newTags = res.data.data.tags.map(tagName => ({
                         tagName: tagName,
-                        tagType: 2 // 假设 2 是 AI 标签
+                        tagType: 2
                     }));
 
-                    // 合并进去（简单粗暴法，或者你可以更精细地去重）
+                    // 合并进去
                     imageObj.tags = [...imageObj.tags, ...newTags];
 
                     // 强制组件刷新一下界面
@@ -173,14 +160,14 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
         }
     };
 
-    // --- 核心：保存逻辑 (合并裁剪 + 滤镜) ---
+    // 保存逻辑 (合并裁剪 + 滤镜)
     const handleSaveProcess = () => {
         if (!cropperRef.current) return;
 
         const hideLoading = message.loading('正在处理图片...', 0);
         const cropper = cropperRef.current.cropper;
 
-        // 1. 获取裁剪后的 Canvas (已经包含了旋转和裁剪)
+        // 获取裁剪后的 Canvas (已经包含了旋转和裁剪)
         const croppedCanvas = cropper.getCroppedCanvas({
             imageSmoothingQuality: 'high',
         });
@@ -191,23 +178,24 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
             return;
         }
 
-        // 2. 创建一个新的 Canvas 来应用滤镜
+        // 创建一个新的 Canvas 来应用滤镜
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = croppedCanvas.width;
         finalCanvas.height = croppedCanvas.height;
         const ctx = finalCanvas.getContext('2d');
 
-        // 3. 应用滤镜 (这一步是核心，把 CSS Filter 变成永久像素)
+        // 应用滤镜
         ctx.filter = getFilterString();
 
-        // 4. 将裁剪好的图画上去
+        // 将裁剪好的图画上去
         ctx.drawImage(croppedCanvas, 0, 0);
 
-        // 5. 导出为 Base64
-        const base64Url = finalCanvas.toDataURL('image/jpeg', 0.9); // 0.9 质量
+        // 导出为 Base64
+        const base64Url = finalCanvas.toDataURL('image/jpeg', 0.9);
 
         hideLoading();
-        onSave(base64Url); // 回调给父组件
+        // 回调给父组件
+        onSave(base64Url);
     };
 
     if (!isOpen) return null;
@@ -228,7 +216,6 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                             width: '100%',
                             filter: getFilterString()
                         }}
-                        // --- 核心修复配置 ---
                         initialAspectRatio={NaN}
                         aspectRatio={NaN}
                         guides={false}        // 关掉虚线网格，看起来更像预览
@@ -237,16 +224,16 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                         responsive={true}
                         checkOrientation={false}
 
-                        // 【修复变暗】关掉黑色遮罩，让图片保持原亮
+                        // 关掉黑色遮罩，让图片保持原亮
                         modal={false}
                         background={false}    // 关掉透明格子背景
 
-                        // 【修复布局】默认选中整个图片区域
+                        // 默认选中整个图片区域
                         autoCropArea={1}
 
                         ref={cropperRef}
 
-                        // 【核心修改】初始化完成后，记录“基准缩放值”
+                        // 初始化完成后，记录“基准缩放值”
                         ready={(e) => {
                             if (e.target && e.target.cropper) {
                                 // 获取当前自动适应屏幕后的 zoom 数据
@@ -260,7 +247,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                     />
                 </div>
 
-                {/* 工具面板 (保持不变，只改了 Geometry 部分的逻辑) */}
+                {/* 工具面板 */}
                 <div className="tools-panel">
                     <div className="panel-header">
                         <h2><i className="ri-equalizer-line"></i> 图片工坊</h2>
@@ -322,7 +309,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                         </div>
                     </div>
 
-                    {/* --- 【新增】Group: 标签管理 --- */}
+                    {/* Group 5: 标签管理 */}
                     <div className="tool-group">
                         <div className="group-header" onClick={() => setActiveGroup(activeGroup === 'tags' ? '' : 'tags')}>
                             <span>标签 (Tags)</span>
@@ -353,7 +340,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                                 <div className="tag-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span>AI 识别 (AI)</span>
 
-                                    {/* 【新增】手动触发分析按钮 */}
+                                    {/* 手动触发分析按钮 */}
                                     <button
                                         type="button"
                                         style={{
@@ -379,7 +366,7 @@ const PhotoEditorModal = ({ isOpen, onClose, imageObj, onSave }) => {
                         </div>
                     </div>
 
-                    {/* --- 【新增】Group 5: 元数据展示 (只读) --- */}
+                    {/* Group 6: 元数据展示 --- */}
                     <div className="tool-group">
                         <div className="group-header" onClick={() => setActiveGroup(activeGroup === 'info' ? '' : 'info')}>
                             <span>元数据 (Info)</span>

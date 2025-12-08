@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 @Service
 public class MCPService {
 
-    // ⚠️ 建议将 Key 移至 application.yml 配置中
     @Value("${aliyun.dashscope.api-key}")
     private String API_KEY;
 
@@ -50,7 +49,7 @@ public class MCPService {
     private final Gson gson = new Gson();
 
     /**
-     * 1. 图片向量化 (增强版：多模态融合)
+     * 1. 图片向量化
      */
     public void vectoriseImage(Long imageId) {
         try {
@@ -73,7 +72,7 @@ public class MCPService {
             // 转换为 file:/// 协议的 URL
             String fileUrl = physicalPath.toUri().toString();
 
-            // 3. 构建语义上下文描述 (Semantic Context)
+            // 3. 构建语义上下文描述
             StringBuilder contextBuilder = new StringBuilder();
 
             // 3.1 提取元数据 (地点、时间、设备)
@@ -90,7 +89,7 @@ public class MCPService {
                 }
             }
 
-            // 3.2 提取已有的标签 (Tags)
+            // 3.2 提取已有的标签
             List<ImageTagRelation> relations = relationMapper.selectList(new QueryWrapper<ImageTagRelation>().eq("image_id", imageId));
             if (relations != null && !relations.isEmpty()) {
                 List<Long> tagIds = relations.stream().map(ImageTagRelation::getTagId).collect(Collectors.toList());
@@ -106,7 +105,6 @@ public class MCPService {
             System.out.println("🧠 正在向量化 [" + imageId + "]: 图片 + 语义描述[" + semanticText + "]");
 
             // 4. 构造多模态请求
-            // 2. 【核心修改】泛型必须是 MultiModalEmbeddingItemBase，否则会报错
             List<MultiModalEmbeddingItemBase> contents = new ArrayList<>();
 
             // 添加图片项
@@ -189,7 +187,7 @@ public class MCPService {
         try {
             System.out.println("🔍 AI Search 请求: " + textQuery);
 
-            // 3. 【核心修改】搜图时也要用 Base 类型的 List
+            // 3. 搜图时也用 Base 类型的 List
             List<MultiModalEmbeddingItemBase> contents = new ArrayList<>();
             contents.add(new MultiModalEmbeddingItemText(textQuery));
 
@@ -197,7 +195,7 @@ public class MCPService {
             MultiModalEmbeddingParam param = MultiModalEmbeddingParam.builder()
                     .apiKey(API_KEY)
                     .model("multimodal-embedding-v1")
-                    .contents(contents) // 修复可能的泛型报错
+                    .contents(contents)
                     .build();
 
             MultiModalEmbeddingResult result = embedding.call(param);
@@ -226,7 +224,7 @@ public class MCPService {
 
                     double similarity = cosineSimilarity(queryVector, imgVector);
 
-                    // 阈值：根据多模态融合后的效果，通常可以设在 0.2 ~ 0.25 左右
+                    // 阈值
                     if (similarity > 0) {
                         ImageInfo info = imageInfoMapper.selectById(meta.getImageId());
                         if (info != null) {

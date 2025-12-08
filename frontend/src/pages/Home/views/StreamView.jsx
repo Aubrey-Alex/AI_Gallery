@@ -1,6 +1,6 @@
 // src/pages/Home/views/StreamView.jsx
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCreative, Mousewheel, Autoplay } from 'swiper/modules';
 
@@ -10,8 +10,15 @@ import './StreamView.css';
 
 const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
 
-    // 【核心修改步骤 1】先计算出“原始”的图片列表（不包含为了轮播而复制的）
-    // 这个列表用于计算准确的数量
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // 先计算出原始的图片列表
     const rawDisplayImages = useMemo(() => {
         if (selectedIds && selectedIds.length > 0) {
             return images.filter(img => selectedIds.includes(img.id));
@@ -19,7 +26,7 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
         return images; // 如果没选中，原始列表就是所有图片
     }, [images, selectedIds]);
 
-    // 【核心修改步骤 2】基于 rawDisplayImages 生成 Swiper 真正需要的渲染列表（包含复制的）
+    // 基于 rawDisplayImages 生成 Swiper 真正需要的渲染列表（包含复制的）
     const swiperSlides = useMemo(() => {
         if (!rawDisplayImages || rawDisplayImages.length === 0) return [];
 
@@ -56,7 +63,7 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
                     fontSize: '0.8rem',
                     pointerEvents: 'none'
                 }}>
-                    {/* 【核心修改步骤 3】这里显示 rawDisplayImages.length (真实数量) */}
+                    {/* 这里显示 rawDisplayImages.length (真实数量) */}
                     正在轮播选中的 {rawDisplayImages.length} 张照片
                 </div>
             )}
@@ -65,12 +72,11 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
                 // Key 使用真实数量和模式，保证切换时重置
                 key={`${rawDisplayImages.length}-${isFilteredMode ? 'filtered' : 'all'}`}
 
-                // 【关键修复 1】强制开启进度监听，这对 3D 堆叠效果至关重要
+                // 强制开启进度监听
                 watchSlidesProgress={true}
 
-                // 【关键修复 2】核心中的核心！
-                // 告诉 Swiper 为了 Loop 效果，必须在首尾额外复制多少张图的 DOM。
-                // 这个值必须 >= limitProgress。如果没设这个，limitProgress 再大也没用。
+                // 告诉 Swiper 为了 Loop 效果，必须在首尾额外复制多少张图的 DOM
+                // 这个值必须 >= limitProgress
                 loopedSlides={6}
 
                 grabCursor={true}
@@ -107,18 +113,21 @@ const StreamView = ({ images, selectedIds = [], onDoubleClick }) => {
                 modules={[EffectCreative, Mousewheel, Autoplay]}
                 className="mySwiper"
             >
-                {/* 【核心修改步骤 4】这里遍历 swiperSlides (填充后的列表) */}
+                {/* 遍历 swiperSlides (填充后的列表) */}
                 {/* ⚠️注意：因为有重复图片，key 不能只用 img.id，必须加上 index 否则 React 会报错 */}
                 {swiperSlides.map((img, index) => (
                     <SwiperSlide key={`${img.id}-duplicate-${index}`} className="stream-slide">
                         <div
                             className="slide-inner"
                             onDoubleClick={() => {
-                                onDoubleClick(img);
+                                // 只有 "不是手机" 时，才允许打开大图
+                                if (!isMobile) {
+                                    onDoubleClick(img);
+                                }
                             }}
                         >
                             <img
-                                src={`http://localhost:8080${img.thumbnailPath}`}
+                                src={`${import.meta.env.VITE_IMG_BASE_URL}${img.thumbnailPath}`}
                                 alt={img.fileName}
                                 loading="lazy"
                             />
