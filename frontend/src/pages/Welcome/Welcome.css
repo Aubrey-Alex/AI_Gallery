@@ -1,6 +1,6 @@
 /* src/pages/Welcome/Welcome.css */
 
-/* --- 1. 霸道重置 & 容器限定 --- */
+/* 容器限定 */
 .welcome-page {
     position: fixed;
     top: 0;
@@ -20,12 +20,12 @@
     box-sizing: border-box;
 }
 
-/* --- 2. 顶部氛围光晕 --- */
+/* 顶部氛围光晕 */
 .welcome-page .glow-effect {
     position: absolute;
     width: 200vw;
     height: 200vh;
-    background: radial-gradient(circle at top center, rgba(255, 80, 30, 0.15) 0%, rgba(0, 0, 0, 0) 60%);
+    background: radial-gradient(circle at top center, rgba(255, 80, 30, 0.2) 0%, rgba(0, 0, 0, 0) 60%);
     top: -100vh;
     left: -50vw;
     filter: blur(120px);
@@ -33,7 +33,7 @@
     pointer-events: none;
 }
 
-/* --- 3. 导航栏 --- */
+/* 导航栏 */
 .welcome-page nav {
     position: absolute;
     top: 0;
@@ -44,6 +44,7 @@
     align-items: center;
     padding: 2.5rem 4rem;
     z-index: 100;
+    pointer-events: none;
 }
 
 .welcome-page .logo {
@@ -51,13 +52,14 @@
     font-size: 1.5rem;
     font-weight: 900;
     color: white;
-    /* -webkit-text-stroke: 1px white; */
+    pointer-events: auto;
 }
 
 .welcome-page .nav-actions {
     display: flex;
     gap: 2rem;
     align-items: center;
+    pointer-events: auto;
 }
 
 .welcome-page .btn-login {
@@ -80,7 +82,7 @@
     transform: scale(1.05);
 }
 
-/* --- 4. 核心排版 --- */
+/* 核心排版 */
 .welcome-page .hero {
     position: relative;
     height: 100%;
@@ -90,7 +92,6 @@
 .welcome-page .text-container {
     position: absolute;
     top: 28%;
-    /* 还原 HTML: 28% */
     left: 10%;
     max-width: 650px;
     z-index: 50;
@@ -110,19 +111,16 @@
     color: #ffffff;
     font-size: 6.5rem;
     line-height: 1.1;
-    /* 【修改点1】字体加粗：使用900并配合负间距，视觉上更厚实 */
     font-weight: 800;
     letter-spacing: 3px;
     text-align: left;
     text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     white-space: nowrap;
-    /* -webkit-text-stroke: 5px white; */
 }
 
 .welcome-page .text-line-2 {
     display: block;
     margin-left: 140px;
-    /* 还原 HTML: 140px */
 }
 
 .welcome-page .asterisk {
@@ -149,7 +147,6 @@
     margin: 0 !important;
     padding: 0 !important;
     margin-left: 140px !important;
-    /* 还原 HTML: 140px */
     max-width: 420px;
     color: rgba(255, 255, 255, 0.55);
     line-height: 1.6;
@@ -159,7 +156,7 @@
     text-align: left;
 }
 
-/* --- 5. 图片卡片 --- */
+/* 图片卡片 */
 .welcome-page .floating-card {
     position: absolute;
     border-radius: 12px;
@@ -176,29 +173,23 @@
     filter: brightness(1) contrast(1) !important;
 }
 
-/* 【修改点2】位置参数严格还原 HTML */
-
-/* C位主图 */
+/* 主图 */
 .welcome-page .card-main {
     width: 320px;
     height: 420px;
     right: 20%;
-    /* 修正: 20% */
     top: 35%;
-    /* 修正: 35% */
     transform: rotate(-3deg);
     z-index: 20;
     filter: brightness(1) !important;
 }
 
-/* 右上风景 */
+/* 右上 */
 .welcome-page .card-bg-1 {
     width: 260px;
     height: 340px;
     right: 8%;
-    /* 修正: 8% */
     top: 12%;
-    /* 修正: 12% */
     transform: rotate(8deg);
     z-index: 5;
 }
@@ -208,44 +199,35 @@
     width: 240px;
     height: 320px;
     right: 38%;
-    /* 修正: 38% */
     bottom: 5%;
-    /* 修正: bottom 5% */
     top: auto;
-    /* 清除 top */
     transform: rotate(-10deg);
     z-index: 6;
 }
 
-/* 顶部深层 */
+/* 顶部 */
 .welcome-page .card-deep-1 {
     width: 180px;
     height: 220px;
     right: 30%;
-    /* 修正: 30% */
     top: -5%;
-    /* 修正: -5% */
     transform: rotate(-15deg);
     z-index: 2;
-    /* 修正层级 */
     opacity: 0.8;
 }
 
-/* 右侧边缘 */
+/* 右侧 */
 .welcome-page .card-deep-2 {
     width: 200px;
     height: 260px;
     right: -5%;
-    /* 修正: -5% */
     top: 50%;
-    /* 修正: 50% */
     transform: rotate(12deg);
     z-index: 3;
-    /* 修正层级 */
     opacity: 0.7;
 }
 
-/* 【修改点3】补回缺失的第6张图样式 */
+/* 底部 */
 .welcome-page .card-deep-3 {
     width: 220px;
     height: 180px;
@@ -258,11 +240,11 @@
 }
 
 /* =========================================
-   移动端适配 - 方案 F：Eagle 同款等比缩放 (最终奥义版)
+   移动端适配
    ========================================= */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
-    /* 1. 全局容器 */
+    /* 全局容器 */
     .welcome-page {
         position: relative;
         height: 100vh;
@@ -273,7 +255,7 @@
         background-color: #050505;
     }
 
-    /* 2. 导航栏：保持紧凑 */
+    /* 导航栏：保持紧凑 */
     .welcome-page nav {
         position: relative;
         padding: 1.5rem;
@@ -293,7 +275,7 @@
         font-size: 0.9rem;
     }
 
-    /* 3. 文字区域：缩小并居中 */
+    /* 文字区域：缩小并居中 */
     .welcome-page .hero {
         flex: 1;
         display: flex;
@@ -303,15 +285,13 @@
 
     .welcome-page .text-container {
         position: absolute;
-        top: 30%;
+        top: 25%;
         left: 50%;
         transform: translateX(-50%);
         width: 100%;
         padding: 0 1rem;
-        margin-top: -10rem;
-        /* 稍微靠上 */
+        margin-top: -9rem;
 
-        /* 弹性布局垂直居中 */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -321,8 +301,8 @@
 
     /* 字体整体等比缩小 */
     .welcome-page .hero-title {
-        font-size: 12vw;
-        /* 使用 vw 单位，随屏幕宽度自动缩放！ */
+        font-size: 11.5vw;
+        /* 随屏幕宽度自动缩放 */
         line-height: 1.1;
         margin-bottom: 0.5rem;
     }
@@ -343,16 +323,13 @@
         max-width: 85%;
     }
 
-    /* 4. 核心：图片缩放舞台 (The Stage) */
+    /* 图片缩放 */
     .welcome-page .gallery-scale-wrapper {
         position: relative;
         width: 100%;
-        /* 关键：锁定纵横比，让它像一张图片一样缩放 */
         aspect-ratio: 1 / 1;
         margin-top: auto;
-        /* 推到底部 */
-        margin-bottom: -10%;
-        /* 稍微藏一点到底下去，增加纵深感 */
+        margin-bottom: 0;
     }
 
     /* 所有卡片通用样式 */
@@ -361,45 +338,40 @@
         position: absolute !important;
         object-fit: cover;
         border-radius: 8px;
-        /* 圆角稍微变小 */
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
         transition: none;
-        /* 移动端取消动画 */
     }
 
-    /* --- 开始摆放这6张图 (全部使用 % 定位) --- */
+    /* 摆放这6张图 */
 
-    /* 1. C位主图 (正中) */
+    /* 主图*/
     .welcome-page .card-main {
         width: 45%;
         height: auto;
         aspect-ratio: 3/4;
         left: 50%;
-        top: 40%;
+        top: 25%;
         margin-left: -22.5%;
-        /* width的一半 */
         margin-top: -30%;
-        /* 根据aspect-ratio计算的高度的一半 */
         transform: rotate(-3deg);
         z-index: 20;
         filter: brightness(1);
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
     }
 
-    /* 2. 右上风景 (Bird) */
+    /* 右上 */
     .welcome-page .card-bg-1 {
         width: 35%;
         height: auto;
         aspect-ratio: 3/4;
         right: -5%;
-        /* 稍微以此为基准 */
-        top: 10%;
+        top: 5%;
         transform: rotate(8deg);
         z-index: 15;
         opacity: 0.9;
     }
 
-    /* 3. 左下山景 (Mountain) */
+    /* 左下 */
     .welcome-page .card-bg-2 {
         width: 35%;
         height: auto;
@@ -407,25 +379,24 @@
         left: -5%;
         bottom: 15%;
         top: auto;
-        /* 清除干扰 */
         transform: rotate(-10deg);
         z-index: 15;
         opacity: 0.9;
     }
 
-    /* 4. 顶部深层 (Man - 左上) */
+    /* 顶部 */
     .welcome-page .card-deep-1 {
         width: 25%;
         height: auto;
         aspect-ratio: 3/4;
-        left: 5%;
+        left: 2%;
         top: 0%;
         transform: rotate(-15deg);
         z-index: 10;
         opacity: 0.6;
     }
 
-    /* 5. 右侧人像 (Woman - 右中) */
+    /* 右侧 */
     .welcome-page .card-deep-2 {
         width: 30%;
         height: auto;
@@ -437,14 +408,13 @@
         opacity: 0.6;
     }
 
-    /* 6. 底部风景 (Lake - 正下) */
+    /* 底部 */
     .welcome-page .card-deep-3 {
         width: 40%;
         height: auto;
         aspect-ratio: 4/3;
-        /* 横构图 */
         left: 30%;
-        bottom: -5%;
+        bottom: 8%;
         transform: rotate(5deg);
         z-index: 5;
         opacity: 0.4;

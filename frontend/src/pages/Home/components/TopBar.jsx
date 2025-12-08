@@ -6,10 +6,12 @@ const TopBar = ({
     onSearch,
     onViewChange,
     onUploadClick,
-    onLogout
+    onLogout,
+    onOpenMobileMenu
 }) => {
     const searchInputRef = useRef(null);
 
+    // 搜索
     const handleSearchTrigger = () => {
         const keyword = searchInputRef.current.value.trim();
         onSearch(keyword); // 将结果传回父组件
@@ -17,6 +19,11 @@ const TopBar = ({
 
     return (
         <header className="top-bar">
+            {/* 移动端汉堡菜单按钮 */}
+            <div className="mobile-menu-btn" onClick={onOpenMobileMenu}>
+                <i className="ri-menu-line"></i>
+            </div>
+            {/* 搜索框 */}
             <div className="search-container">
                 <input
                     ref={searchInputRef}
@@ -34,6 +41,7 @@ const TopBar = ({
                 ></i>
             </div>
             <div className="top-actions">
+                {/* 视图 */}
                 <div className="view-toggles">
                     <button
                         className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -51,10 +59,12 @@ const TopBar = ({
                     </button>
                 </div>
 
+                {/* 上传按钮 */}
                 <button className="upload-btn" onClick={onUploadClick}>
-                    <i className="ri-upload-cloud-2-line"></i>Upload
+                    <i className="ri-upload-cloud-2-line"></i><span className="btn-text">Upload</span>
                 </button>
 
+                {/* 用户信息 */}
                 <div
                     className="user-greeting-wrapper"
                     onClick={onLogout}

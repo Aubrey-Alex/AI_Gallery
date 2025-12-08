@@ -47,7 +47,6 @@
 /* 扫描状态：高亮边框 */
 .upload-box.scanning {
     border-color: #FF5722;
-    /* 你的主题色 */
     box-shadow: 0 0 40px rgba(255, 87, 34, 0.3);
     border-style: solid;
 }
@@ -87,7 +86,7 @@
     opacity: 0.8;
 }
 
-/* 扫描光束 - 核心动画 */
+/* 扫描光束 */
 .scan-beam {
     position: absolute;
     top: -20%;
@@ -122,10 +121,9 @@
     font-weight: 500;
     min-height: 1.5em;
     font-family: monospace;
-    /* 更有科技感 */
 }
 
-/* 步骤指示的小点点 (可选优化) */
+/* 步骤指示的小点点 */
 .step-dots {
     display: flex;
     gap: 6px;
@@ -162,8 +160,6 @@
 .close-btn:hover {
     background: #FF5722;
 }
-
-/* ... 原有代码 ... */
 
 /* 添加旋转和进度条动画 */
 @keyframes spin {

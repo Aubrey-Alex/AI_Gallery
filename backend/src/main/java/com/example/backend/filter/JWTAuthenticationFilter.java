@@ -40,7 +40,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         Claims claims = JWTUtils.parseToken(token);
 
         if (claims != null) {
-            // Token 有效，提取用户信息 (注意：user ID 在 JWTUtils 中是以 Long 类型存储的)
+            // Token 有效，提取用户信息 (user ID 在 JWTUtils 中是以 Long 类型存储的)
             Long userId = claims.get("userId", Long.class);
             String role = claims.get("role", String.class);
 

@@ -19,7 +19,7 @@ public class TagController {
     @Autowired
     private TagService tagService;
 
-    // 定义接收前端参数的内部类 DTO
+    // 定义接收前端参数的内部类
     static class AddTagRequest {
         public List<Long> imageIds; // 选中的图片 ID 数组
         public List<String> tags;   // 输入的标签名数组

@@ -18,10 +18,9 @@ public class UserService extends ServiceImpl<UserMapper, SysUser>{
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired // 【新增】注入 PasswordEncoder
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // 【修改】返回类型从 String 改为 Map<String, Object>
     public Map<String, Object> login(String username, String password) {
         // 用于存储返回结果
         Map<String, Object> result = new HashMap<>();
@@ -39,8 +38,7 @@ public class UserService extends ServiceImpl<UserMapper, SysUser>{
             return result;
         }
 
-        // 4. 【核心修复】使用 passwordEncoder 校验 BCrypt 密码
-        // passwordEncoder.matches(明文密码, 数据库中的加密密码)
+        // 4. 使用 passwordEncoder 校验 BCrypt 密码
         if (!passwordEncoder.matches(password, user.getPassword())) {
             result.put("msg", "密码错误");
             return result;
