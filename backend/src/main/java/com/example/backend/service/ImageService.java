@@ -63,7 +63,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
     private MCPService mcpService;
 
     /**
-     * 上传图片主逻辑 (兼容旧代码重载)
+     * 上传图片主逻辑（原方法，做兼容）
      */
     @Transactional(rollbackFor = Exception.class)
     public ImageInfo uploadImage(MultipartFile file, Long userId) throws IOException {
@@ -124,9 +124,6 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             System.err.println("EXIF 提取失败: " + e.getMessage());
         }
 
-        // =========================================================
-        // 【核心逻辑修复】：优先使用前端传来的时间
-        // =========================================================
         if (frontendShootTime != null && frontendShootTime > 0) {
             try {
                 // 将时间戳转换为 LocalDateTime
@@ -145,7 +142,6 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         if (metaInfo.getShootTime() == null) {
             metaInfo.setShootTime(LocalDateTime.now());
         }
-        // =========================================================
 
         // 6. 保存 ImageInfo 到数据库
         ImageInfo imageInfo = new ImageInfo();
@@ -161,7 +157,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             metaInfo.setImageId(imageInfo.getId());
             metadataMapper.insert(metaInfo);
 
-            // === 自动打标逻辑 (EXIF) ===
+            // 自动打标逻辑 (EXIF)
             List<String> autoTags = new ArrayList<>();
 
             // 提取相机型号作为标签
@@ -201,13 +197,12 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             System.err.println("AI 识别跳过: " + e.getMessage());
         }
 
-        // === 在这里插入 AI 向量化逻辑 (新代码) ===
+        // AI 向量化逻辑 (新代码
         // 开启一个新线程异步处理，防止用户上传时卡顿
         new Thread(() -> {
             try {
                 // 稍微等一下，确保事务提交，图片文件已落盘
                 Thread.sleep(500);
-                // 这里的 mcpService 需要在 ImageService 里注入 (@Autowired private MCPService mcpService;)
                 mcpService.vectoriseImage(imageInfo.getId());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -278,7 +273,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
     private String getGlobalLocation(double lat, double lon) {
         try {
             // 1. 构建高德 API URL
-            // 注意：高德的坐标顺序是 【经度,纬度】 (lon, lat)，跟国际标准相反，千万别搞反了！
+            // 注意：高德的坐标顺序是 【经度,纬度】 (lon, lat)，跟国际标准相反
             // output=json: 返回 JSON 格式
             // radius=1000: 搜索半径 1000米
             // extensions=base: 只返回基本地址信息（省市区），不需要周边 POI，速度更快
@@ -311,7 +306,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
                         JSONObject addressComponent = regeocode.optJSONObject("addressComponent");
                         if (addressComponent != null) {
                             // 获取省市区
-                            // 注意：高德对直辖市的处理，city 可能会是空数组或空字符串
+                            // 高德对直辖市的处理，city 可能会是空数组或空字符串
                             String province = addressComponent.optString("province");
 
                             // 高德坑点：如果是非直辖市，city 是字符串；如果是直辖市，city 可能是 [] (JSONArray)
@@ -344,7 +339,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         return String.format("%.2f, %.2f", lat, lon);
     }
 
-    // 定义一个简单的同义词库 (静态定义即可，也可以做成数据库表)
+    // 定义一个简单的同义词库
     private static final Map<String, List<String>> SYNONYM_MAP = new HashMap<>();
     static {
         SYNONYM_MAP.put("猫", List.of("猫", "小猫", "喵星人", "Cat"));
@@ -371,10 +366,8 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
             String cleanInput = inputKeyword.trim();
             String[] keywords = cleanInput.split("\\s+");
 
-            // 【修改后】：使用一个大的 AND 括号，里面包着所有关键词的 OR
-            // 这里的逻辑稍微变一下：我们希望 ( (匹配A) OR (匹配B) )
-            // 这样搜 "杭州 忻州" = 杭州 OR 忻州
-            // 搜 "杭州 风景" = 杭州 OR 风景 (这可能会导致结果变多，但不会为0)
+            // "杭州 忻州" = 杭州 OR 忻州
+            // 搜 "杭州 风景" = 杭州 OR 风景 (可能会导致结果变多，但不会为0)
 
             imgQuery.and(mainWrapper -> {
                 for (String word : keywords) {
@@ -387,7 +380,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
                         }
                     });
 
-                    // 关键修改：这里用 mainWrapper.or()，表示关键词之间是“或”的关系
+                    // 这里用 mainWrapper.or()，表示关键词之间是“或”的关系
                     mainWrapper.or(subWrapper -> {
                         for (String w : searchWords) {
                             // 每一个词的内部逻辑保持不变（搜文件名、标签、元数据...）
@@ -411,7 +404,6 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         wrapper.like("file_path", keyword);
 
         // 2. 搜标签 (关联查询)
-        // 注意：在循环里做子查询可能会有点慢，但对于个人相册(万级以下)完全没问题
         // select image_id from image_tag_relation where tag_id in (select id from image_tag where tag_name like %keyword%)
         wrapper.or().inSql("id", "SELECT image_id FROM image_tag_relation WHERE tag_id IN (SELECT id FROM image_tag WHERE tag_name LIKE '%" + keyword + "%')");
 
@@ -419,7 +411,7 @@ public class ImageService extends ServiceImpl<ImageInfoMapper, ImageInfo> {
         // select image_id from image_metadata where location_name like %keyword% or camera_model like %keyword%
         wrapper.or().inSql("id", "SELECT image_id FROM image_metadata WHERE location_name LIKE '%" + keyword + "%' OR camera_model LIKE '%" + keyword + "%'");
 
-        // 4. 【智能嗅探】如果是数字，尝试搜年份
+        // 4. 如果是数字，尝试搜年份
         if (keyword.matches("\\d{4}")) {
             // 假设 keyword 是 "2024"，匹配 metadata 里的 shoot_time
             wrapper.or().inSql("id", "SELECT image_id FROM image_metadata WHERE YEAR(shoot_time) = " + keyword);

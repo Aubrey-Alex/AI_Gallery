@@ -14,13 +14,13 @@ public class WebSecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
-                // 【核心】明确忽略这些公共路径，让它们绕过整个安全检查
-                "/api/user/login",
-                "/api/user/register",
-                "/api/user/hello"
-//                "/api/image/**", // 暂时也忽略图片接口
-//                "/uploads/**"    // 【新增这一行】放行刚刚配置的静态图片资源
-//                "/api/tag/**" // 【新增】暂时放行 Tag 接口，方便调试
+                // 明确忽略这些公共路径，让它们绕过整个安全检查
+                "/uploads/**"    // 放行刚刚配置的静态图片资源
+//                "/api/user/login",
+//                "/api/user/register",
+//                "/api/user/hello"
+//                "/api/image/**", // 暂时忽略图片接口
+//                "/api/tag/**" // 暂时放行 Tag 接口，方便调试
         );
     }
 }

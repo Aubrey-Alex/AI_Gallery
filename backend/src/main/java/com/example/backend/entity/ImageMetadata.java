@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @TableName("image_metadata")
 public class ImageMetadata {
-    // 主键 (手动设置，等于 image_info 的 id)
+    // 主键
     @TableId
     private Long imageId;
 
@@ -17,8 +17,6 @@ public class ImageMetadata {
     private String locationName;
     private LocalDateTime shootTime;
 
-    // === 新增字段 ===
-
     /**
      * 是否已完成向量化: 0-否, 1-是
      */
@@ -27,12 +25,12 @@ public class ImageMetadata {
 
     /**
      * 核心向量数据
-     * 数据库存的是 JSON，我们用 String 来接，避免 MyBatis 复杂的 TypeHandler 配置
+     * 数据库存的是 JSON，现在用 String 来接，避免 MyBatis 复杂的 TypeHandler 配置
      */
     @TableField("embedding")
     private String embedding;
 
-    // --- Getters and Setters (包含原有和新增的) ---
+    // --- Getters and Setters ---
 
     public Long getImageId() { return imageId; }
     public void setImageId(Long imageId) { this.imageId = imageId; }
@@ -52,7 +50,6 @@ public class ImageMetadata {
     public LocalDateTime getShootTime() { return shootTime; }
     public void setShootTime(LocalDateTime shootTime) { this.shootTime = shootTime; }
 
-    // 新增字段的 Getter/Setter
     public Integer getIsVectorized() { return isVectorized; }
     public void setIsVectorized(Integer isVectorized) { this.isVectorized = isVectorized; }
 

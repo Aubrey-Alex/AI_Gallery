@@ -25,10 +25,10 @@ public class ImageController {
     private ImageService imageService;
 
     @Autowired
-    private TagService tagService; // 【新增】注入 TagService
+    private TagService tagService;
 
     @Autowired
-    private com.example.backend.mapper.ImageMetadataMapper metadataMapper; // 【新增注入】
+    private com.example.backend.mapper.ImageMetadataMapper metadataMapper;
 
     // 定义一个内部类用于接收 JSON 参数
     static class SaveEditorRequest {
@@ -65,7 +65,6 @@ public class ImageController {
      * 获取当前用户的图片列表 (包含标签)
      * URL: GET /api/image/list
      */
-    // 【修改】列表接口，增加 onlyFavorites 参数
     @GetMapping("/list")
     public Map<String, Object> list(
             @RequestParam(required = false) String keyword,
@@ -76,10 +75,9 @@ public class ImageController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long userId = (Long) authentication.getPrincipal();
 
-            // 调用修改后的 searchImages
+            // 调用searchImages
             List<ImageInfo> list = imageService.searchImages(userId, keyword, onlyFavorites);
 
-            // ... (下面保持不变：转 VO，填标签，填 Metadata) ...
             List<ImageVO> voList = list.stream().map(img -> {
                 ImageVO vo = new ImageVO();
                 vo.setId(img.getId());
@@ -87,7 +85,6 @@ public class ImageController {
                 vo.setFilePath(img.getFilePath());
                 vo.setThumbnailPath(img.getThumbnailPath());
                 vo.setUploadTime(img.getUploadTime());
-                // 【新增】VO 也得加上 isFavorite 字段，别忘了在 ImageVO 里也加一下！
                 vo.setIsFavorite(img.getIsFavorite());
 
                 vo.setTags(tagService.getTagsByImageId(img.getId()));
@@ -107,7 +104,7 @@ public class ImageController {
         return result;
     }
 
-    // 【新增】切换收藏状态接口
+    // 切换收藏状态接口
     @PostMapping("/{id}/favorite")
     public Map<String, Object> toggleFavorite(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();

@@ -25,7 +25,7 @@ public class MCPController {
 
     @PostMapping("/search")
     public Map<String, Object> search(@RequestBody SearchRequest request) {
-        // 1. 获取向量搜索结果 (ID + 分数)
+        // 1. 获取向量搜索结果
         List<MCPService.SearchResult> searchResults = mcpService.searchImageByText(request.query);
 
         if (searchResults.isEmpty()) {
@@ -37,7 +37,6 @@ public class MCPController {
         List<ImageInfo> images = imageService.listByIds(ids);
 
         // 3. 组装结果：把 ImageInfo 和 Score 拼在一起
-        // 变成前端好用的格式: { ...imageInfo, score: 0.85 }
         List<Map<String, Object>> finalResult = new ArrayList<>();
 
         // 转 Map 方便查找
@@ -49,9 +48,9 @@ public class MCPController {
             if (img != null) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", img.getId());
-                item.put("url", img.getFilePath()); // 注意：前端可能需要完整URL
+                item.put("url", img.getFilePath());
                 item.put("thumbnail", img.getThumbnailPath());
-                item.put("score", r.score); // 核心：把分数给前端
+                item.put("score", r.score);
                 finalResult.add(item);
             }
         }

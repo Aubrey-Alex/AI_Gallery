@@ -14,17 +14,13 @@ export default defineConfig({
                 target: 'http://localhost:8080', // 转发给后端的地址
                 changeOrigin: true,
                 secure: false,
-                // 如果你的后端接口本身就是 /api/user/login，就不需要 rewrite
-                // 如果你的后端接口是 /user/login (没有api前缀)，则需要取消下面这行的注释
+                // 如果后端接口是 /user/login (没有api前缀)，则需要取消下面这行的注释
                 // rewrite: (path) => path.replace(/^\/api/, '')
             },
             '/uploads': {
                 target: 'http://localhost:8080', // 转发给后端的地址
                 changeOrigin: true,
                 secure: false,
-                // 如果你的后端接口本身就是 /api/user/login，就不需要 rewrite
-                // 如果你的后端接口是 /user/login (没有api前缀)，则需要取消下面这行的注释
-                // rewrite: (path) => path.replace(/^\/api/, '')
             }
         }
     }
