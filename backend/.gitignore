@@ -1,33 +1,29 @@
-HELP.md
+# --- Maven 构建产物 ---
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+!.mvn/wrapper/maven-wrapper.jar
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
+# --- IntelliJ IDEA 配置文件 ---
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+# --- Eclipse/VS Code 配置文件 ---
+.classpath
+.project
+.settings/
 .vscode/
+
+# --- 日志文件 ---
+*.log
+logs/
+
+# --- 操作系统生成的垃圾文件 ---
+.DS_Store
+Thumbs.db
+
+# --- 敏感信息 & 环境变量 ---
+.env
+*.key
+application-secret.yml
+application-dev.yml
