@@ -1,0 +1,49 @@
+services:
+  # 1. 前端 + Nginx 服务
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"  # 浏览器访问端口
+    volumes:
+      # 把共享卷挂载到 Nginx 读取图片的目录
+      - upload_volume:/usr/share/nginx/html/uploads
+    depends_on:
+      - backend
+    networks:
+      - app_net
+
+  # 2. 后端服务
+  backend:
+    build: ./backend
+    expose:
+      - "8080" # 只暴露给内部网络，外部无法直接访问 8080
+    volumes:
+      # 把共享卷挂载到 Java 写入图片的目录
+      - upload_volume:/app/uploads
+    depends_on:
+      - mysql-db
+    networks:
+      - app_net
+
+  # 3. 数据库服务
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: ai_gallery
+      MYSQL_USER: ai_admin
+      MYSQL_PASSWORD: 123456
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - app_net
+
+# 定义数据卷
+volumes:
+  upload_volume: # 用来存放图片的共享空间
+  db_data:       # 用来持久化数据库
+
+# 定义网络
+networks:
+  app_net:
